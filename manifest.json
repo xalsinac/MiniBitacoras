@@ -1,0 +1,15 @@
+{
+  "name": "Diario de Lía y Max",
+  "short_name": "LiaMax",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f7f6",
+  "theme_color": "#ff758f",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3855/3855833.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

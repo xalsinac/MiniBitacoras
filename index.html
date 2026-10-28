@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Diario de LIA y MAX</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#f0f2f5">
+    <style>
+        /* --- VARIABLES DE COLOR (TEMA CLARO) --- */
+        :root {
+            --lia-color: #fff0f2;
+            --lia-dark: #ff758f;
+            --lia-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            
+            --max-color: #e3f2fd;
+            --max-dark: #4fc3f7;
+            --max-gradient: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+            
+            --bg-color: #f4f7f6;
+            --text-main: #2d3436;
+            --text-muted: #636e72;
+            --card-bg: #ffffff;
+            --input-bg: #ffffff;
+            --border-color: #dfe6e9;
+            --timeline-line: #b2bec3;
+            --shadow: 0 8px 20px rgba(0,0,0,0.06);
+        }
+
+        /* --- VARIABLES DE COLOR (TEMA OSCURO) --- */
+        body.dark-mode {
+            --lia-color: #3b2a2d;
+            --lia-dark: #ff477e;
+            --lia-gradient: linear-gradient(135deg, #5c3a41 0%, #3b2a2d 100%);
+            
+            --max-color: #1a2a32;
+            --max-dark: #29b6f6;
+            --max-gradient: linear-gradient(135deg, #2a4b52 0%, #1a2a32 100%);
+            
+            --bg-color: #121212;
+            --text-main: #f5f6fa;
+            --text-muted: #a4b0be;
+            --card-bg: #1e1e1e;
+            --input-bg: #2d3436;
+            --border-color: #444;
+            --timeline-line: #444;
+            --shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        /* --- ESTILOS GLOBALES --- */
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0; padding: 0; padding-bottom: 90px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .hidden { display: none !important; }
+        .screen { padding: 20px; max-width: 600px; margin: 0 auto; animation: fadeIn 0.4s ease; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- INDICADOR DE SCROLL --- */
+        #scroll-indicator {
+            position: fixed; top: 75px; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7); color: white; padding: 6px 15px;
+            border-radius: 20px; font-weight: bold; font-size: 0.9rem;
+            z-index: 1000; opacity: 0; transition: opacity 0.3s; pointer-events: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); backdrop-filter: blur(5px);
+        }
+        #scroll-indicator.visible { opacity: 1; }
+        body.dark-mode #scroll-indicator { background: rgba(255,255,255,0.2); color: #fff; }
+
+        /* --- PANTALLA DE LOGIN --- */
+        #login-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            min-height: 100vh; padding: 0; background: linear-gradient(-45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb);
+            background-size: 400% 400%; animation: gradientBG 10s ease infinite;
+        }
+        @keyframes gradientBG { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
+        
+        .login-card {
+            background: var(--card-bg); padding: 40px 30px; border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center; width: 80%; max-width: 350px;
+        }
+        .login-card h2 { margin-top: 0; color: var(--text-main); font-size: 1.8rem; }
+        .login-card p { color: var(--text-muted); margin-bottom: 25px; }
+        .login-card input {
+            padding: 15px; font-size: 1.2rem; border-radius: 12px; border: 2px solid var(--border-color);
+            text-align: center; margin-bottom: 20px; width: 100%; box-sizing: border-box;
+            background: var(--input-bg); color: var(--text-main); transition: border 0.3s;
+        }
+        .login-card input:focus { border-color: var(--lia-dark); outline: none; }
+        .login-card button {
+            padding: 15px; width: 100%; font-size: 1.1rem; border-radius: 12px; border: none;
+            background: linear-gradient(90deg, var(--lia-dark), var(--max-dark));
+            color: white; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* --- CABECERA Y NAVEGACIÓN --- */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-top: 10px;}
+        header h1 {
+            margin: 0; font-size: 2.2rem; text-align: center; flex-grow: 1;
+            background: linear-gradient(90deg, var(--lia-dark), var(--max-dark));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .header-title-small { font-size: 1.5rem; text-align: center; flex-grow: 1; color: var(--text-main); margin: 0;}
+        .icon-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); padding: 5px; }
+
+        /* --- BUSCADOR --- */
+        .search-container { position: relative; margin-bottom: 25px; }
+        .search-input { 
+            width: 100%; padding: 15px 20px 15px 45px; border-radius: 20px; border: 1px solid var(--border-color); 
+            font-size: 1.05rem; box-sizing: border-box; background: var(--card-bg); color: var(--text-main);
+            box-shadow: var(--shadow); transition: all 0.3s; font-family: inherit;
+        }
+        .search-input:focus { outline: none; border-color: var(--lia-dark); }
+        .search-icon { position: absolute; left: 15px; top: 15px; font-size: 1.2rem; opacity: 0.5; }
+        
+        #search-results { 
+            background: var(--card-bg); border-radius: 15px; margin-top: 10px; overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .search-result-item { 
+            padding: 15px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s;
+        }
+        .search-result-item:last-child { border-bottom: none; }
+        .search-result-item:active { background: var(--border-color); }
+
+        /* --- TARJETAS PRINCIPALES --- */
+        .big-card {
+            background: var(--card-bg); border-radius: 20px; padding: 30px 20px; margin-bottom: 20px;
+            box-shadow: var(--shadow); text-align: center; cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s; border-bottom: 5px solid transparent;
+        }
+        .big-card:active { transform: scale(0.97); }
+        .big-card#card-timeline { border-bottom-color: var(--lia-dark); }
+        .big-card#card-quotes { border-bottom-color: var(--max-dark); }
+        .big-card h2 { margin: 0 0 10px 0; font-size: 1.6rem; color: var(--text-main); }
+        .big-card p { color: var(--text-muted); margin: 0; font-size: 1rem;}
+
+        /* --- BOTÓN FLOTANTE --- */
+        #fab {
+            position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--lia-dark), var(--max-dark));
+            color: white; font-size: 2.5rem; border: none; box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            cursor: pointer; z-index: 1000; display: flex; justify-content: center; align-items: center;
+            transition: transform 0.2s;
+        }
+        #fab:active { transform: scale(0.9); }
+
+        /* --- LÍNEA DE TIEMPO (CRONOLOGÍA) --- */
+        .timeline { position: relative; max-width: 100%; margin: 0 auto; padding-top: 10px; }
+        .timeline::after {
+            content: ''; position: absolute; width: 4px; background-color: var(--timeline-line);
+            top: 0; bottom: 0; left: 50%; margin-left: -2px; border-radius: 2px;
+        }
+        .container-tl { padding: 10px 20px; position: relative; width: 50%; box-sizing: border-box; }
+        .container-tl.lia { left: 0; }
+        .container-tl.max { left: 50%; }
+        .container-tl::after {
+            content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%;
+            background-color: var(--card-bg); border: 4px solid var(--timeline-line); top: 15px; z-index: 1;
+        }
+        .lia::after { right: -12px; border-color: var(--lia-dark); }
+        .max::after { left: -12px; border-color: var(--max-dark); }
+        
+        .content-tl { 
+            padding: 15px; border-radius: 15px; position: relative; 
+            box-shadow: var(--shadow); background: var(--card-bg);
+        }
+        .lia .content-tl { border-left: 5px solid var(--lia-dark); background-color: var(--lia-color); }
+        .max .content-tl { border-left: 5px solid var(--max-dark); background-color: var(--max-color); }
+        .date-badge { font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; color: var(--text-muted); }
+        
+        /* Botón de borrar */
+        .delete-btn {
+            position: absolute; top: 12px; right: 12px; background: none; border: none;
+            font-size: 1.1rem; cursor: pointer; opacity: 0.6; transition: opacity 0.2s; padding: 5px;
+        }
+        .delete-btn:hover { opacity: 1; }
+
+        /* --- FRASES CÉLEBRES --- */
+        .quotes-grid { display: flex; flex-direction: column; gap: 15px; }
+        .quote-card { 
+            padding: 20px; border-radius: 15px; position: relative; font-size: 1.15rem; 
+            font-style: italic; box-shadow: var(--shadow); line-height: 1.4;
+        }
+        .quote-card.lia { background: var(--lia-gradient); color: #fff; }
+        .quote-card.max { background: var(--max-gradient); color: #2d3436; }
+        body.dark-mode .quote-card.max { color: #fff; }
+        .quote-author { font-size: 0.9rem; font-weight: bold; margin-top: 15px; text-align: right; font-style: normal; opacity: 0.9;}
+
+        /* --- ANIMACIÓN DESTACAR (Buscador) --- */
+        @keyframes highlightPulse { 
+            0% { transform: scale(1); filter: brightness(1); } 
+            50% { transform: scale(1.03); filter: brightness(1.2); box-shadow: 0 0 20px var(--max-dark); } 
+            100% { transform: scale(1); filter: brightness(1); } 
+        }
+        .highlight-item > .content-tl, .highlight-item.quote-card { animation: highlightPulse 2s ease; }
+
+        /* --- MODAL --- */
+        #add-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 2000; display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            background: var(--card-bg); padding: 25px; border-radius: 20px; width: 85%; max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
+        .form-group label { margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; color: var(--text-main); }
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); font-size: 1rem;
+            background: var(--input-bg); color: var(--text-main);
+        }
+        .btn-row { display: flex; justify-content: space-between; margin-top: 25px; gap: 10px;}
+        .btn-row button { padding: 14px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; flex: 1;}
+        .btn-save { background: linear-gradient(90deg, var(--lia-dark), var(--max-dark)); color: white; }
+        .btn-cancel { background: var(--border-color); color: var(--text-main); }
+    </style>
+</head>
+<body>
+
+    <!-- Indicador Flotante de Mes/Año (Scroll) -->
+    <div id="scroll-indicator">Oct 2025</div>
+
+    <!-- 1. Pantalla de Login -->
+    <div id="login-screen">
+        <div class="login-card">
+            <h2>¡Hola Familia! 👋</h2>
+            <p>Introduce la contraseña para entrar al diario.</p>
+            <input type="password" id="pass-input" placeholder="Contraseña">
+            <button onclick="checkLogin()">Acceder</button>
+        </div>
+    </div>
+
+    <!-- 2. Pantalla Principal (Dashboard) -->
+    <div id="home-screen" class="screen hidden">
+        <header>
+            <div style="width: 40px;"></div>
+            <h1>LiaMax</h1>
+            <button class="icon-btn" style="width: 40px;" onclick="toggleDarkMode()" title="Cambiar tema">🌓</button>
+        </header>
+
+        <!-- Buscador -->
+        <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" class="search-input" placeholder="Buscar palabras, fechas..." oninput="doSearch()">
+            <div id="search-results"></div>
+        </div>
+        
+        <div class="big-card" id="card-timeline" onclick="showScreen('timeline-screen')">
+            <h2 style="font-size: 2.5rem; margin-bottom: 5px;">📅</h2>
+            <h2>Cronología</h2>
+            <p>Sus primeros pasos, dientes y logros</p>
+        </div>
+        
+        <div class="big-card" id="card-quotes" onclick="showScreen('quotes-screen')">
+            <h2 style="font-size: 2.5rem; margin-bottom: 5px;">💬</h2>
+            <h2>Frases Célebres</h2>
+            <p>Ocurrencias que no queremos olvidar</p>
+        </div>
+    </div>
+
+    <!-- 3. Pantalla Cronología -->
+    <div id="timeline-screen" class="screen hidden">
+        <header>
+            <button class="icon-btn" style="width: 40px; text-align: left;" onclick="showScreen('home-screen')">🔙</button>
+            <h2 class="header-title-small">Cronología</h2>
+            <button class="icon-btn" style="width: 40px; text-align: right;" onclick="toggleDarkMode()" title="Cambiar tema">🌓</button>
+        </header>
+        <div class="timeline" id="timeline-container"></div>
+    </div>
+
+    <!-- 4. Pantalla Frases -->
+    <div id="quotes-screen" class="screen hidden">
+        <header>
+            <button class="icon-btn" style="width: 40px; text-align: left;" onclick="showScreen('home-screen')">🔙</button>
+            <h2 class="header-title-small">Frases Célebres</h2>
+            <button class="icon-btn" style="width: 40px; text-align: right;" onclick="toggleDarkMode()" title="Cambiar tema">🌓</button>
+        </header>
+        <div class="quotes-grid" id="quotes-container"></div>
+    </div>
+
+    <!-- Botón Flotante Global -->
+    <button id="fab" class="hidden" onclick="openModal()">+</button>
+
+    <!-- Modal para añadir Nuevo Elemento -->
+    <div id="add-modal" class="hidden">
+        <div class="modal-content">
+            <h2 style="margin-top:0; color: var(--text-main); text-align: center;">Añadir Recuerdo</h2>
+            
+            <div class="form-group">
+                <label>¿Qué vas a guardar?</label>
+                <select id="input-type">
+                    <option value="hito">📅 Un Hito (Cronología)</option>
+                    <option value="frase">💬 Una Frase Célebre</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>¿Quién es el protagonista?</label>
+                <select id="input-child">
+                    <option value="lia">👧 Lía</option>
+                    <option value="max">👦 Max</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Escribe aquí...</label>
+                <textarea id="input-text" rows="3" placeholder="Ej. Ha aprendido a decir mamá..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Mes y Año (Para ordenar en el tiempo)</label>
+                <input type="month" id="input-sort-date" required>
+            </div>
+
+            <div class="form-group">
+                <label>Texto de la fecha (Opcional)</label>
+                <input type="text" id="input-display-date" placeholder="Ej: 'A los 7 meses' o 'Navidad 2026'">
+            </div>
+
+            <div class="btn-row">
+                <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+                <button class="btn-save" onclick="saveData()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- --- LÓGICA JAVASCRIPT --- -->
+    <script>
+        // MODO OSCURO AUTOMÁTICO / MANUAL
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('kidsAppTheme', isDark ? 'dark' : 'light');
+        }
+
+        const savedTheme = localStorage.getItem('kidsAppTheme');
+        const systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+            document.body.classList.add('dark-mode');
+        }
+
+        // DATOS DE PRUEBA
+        const mockData = [
+            { id: 101, type: 'hito', child: 'lia', text: '¡Primeros pasitos sin cogerse a los muebles!', sortDate: '2025-10', displayDate: 'A los 12 meses' },
+            { id: 102, type: 'hito', child: 'max', text: 'Le ha salido su primer diente (el de abajo).', sortDate: '2026-02', displayDate: 'Febrero 2026' },
+            { id: 103, type: 'frase', child: 'lia', text: 'Mamá, el sol se ha ido a dormir porque está muy cansado de brillar.', sortDate: '2026-05', displayDate: 'Mayo 2026' },
+            { id: 104, type: 'frase', child: 'max', text: '¡Yo no soy Max, soy un dinosaurio RAWR!', sortDate: '2026-08', displayDate: 'Agosto 2026' },
+            { id: 105, type: 'hito', child: 'lia', text: 'Primer día de guardería, ni una sola lágrima.', sortDate: '2026-09', displayDate: 'Septiembre 2026' }
+        ];
+
+        let db = JSON.parse(localStorage.getItem('kidsAppDB'));
+        if (!db || db.length === 0) {
+            db = mockData;
+            localStorage.setItem('kidsAppDB', JSON.stringify(db));
+        }
+
+        // LOGIN
+        document.getElementById('pass-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') checkLogin();
+        });
+
+        function checkLogin() {
+            const pass = document.getElementById('pass-input').value;
+            if (pass === '5588') {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('home-screen').classList.remove('hidden');
+                document.getElementById('fab').classList.remove('hidden');
+                renderViews();
+            } else {
+                alert('Contraseña incorrecta.');
+            }
+        }
+
+        // NAVEGACIÓN
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+            
+            // Limpiar buscador al salir del home
+            if(screenId !== 'home-screen') {
+                document.getElementById('search-input').value = '';
+                document.getElementById('search-results').innerHTML = '';
+            }
+            renderViews();
+            window.scrollTo(0,0); // Volver arriba al cambiar de pantalla
+        }
+
+        // MODAL
+        function openModal() {
+            const today = new Date();
+            document.getElementById('input-sort-date').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+            document.getElementById('add-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('add-modal').classList.add('hidden');
+            document.getElementById('input-text').value = '';
+            document.getElementById('input-display-date').value = '';
+        }
+
+        // GUARDAR / BORRAR
+        function saveData() {
+            const type = document.getElementById('input-type').value;
+            const child = document.getElementById('input-child').value;
+            const text = document.getElementById('input-text').value;
+            const sortDate = document.getElementById('input-sort-date').value;
+            let displayDate = document.getElementById('input-display-date').value;
+
+            if(!text || !sortDate) { alert('Rellena al menos el texto y el Mes/Año'); return; }
+            if(!displayDate) displayDate = sortDate;
+
+            const newEntry = { id: Date.now(), type, child, text, sortDate, displayDate };
+            db.push(newEntry);
+            localStorage.setItem('kidsAppDB', JSON.stringify(db));
+            
+            closeModal();
+            renderViews();
+        }
+
+        function deleteEntry(id, event) {
+            event.stopPropagation(); // Evita que se disparen clics de otros elementos
+            if(confirm('¿Seguro que quieres borrar este recuerdo?')) {
+                db = db.filter(item => item.id !== id);
+                localStorage.setItem('kidsAppDB', JSON.stringify(db));
+                renderViews();
+            }
+        }
+
+        // --- BUSCADOR ---
+        function doSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const resultsContainer = document.getElementById('search-results');
+            
+            if (query.length < 2) {
+                resultsContainer.innerHTML = '';
+                return;
+            }
+            
+            // Buscar coincidencias en texto o fecha
+            const results = db.filter(item => 
+                item.text.toLowerCase().includes(query) || 
+                item.displayDate.toLowerCase().includes(query)
+            );
+            
+            if(results.length === 0) {
+                resultsContainer.innerHTML = '<div style="padding:15px; color:var(--text-muted); text-align:center;">No hay resultados</div>';
+                return;
+            }
+
+            resultsContainer.innerHTML = results.map(item => {
+                const icono = item.type === 'hito' ? '📅' : '💬';
+                const nombre = item.child === 'lia' ? 'Lía' : 'Max';
+                const snippet = item.text.length > 40 ? item.text.substring(0, 40) + '...' : item.text;
+                
+                return `
+                <div class="search-result-item" onclick="goToItem(${item.id}, '${item.type}')">
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom:5px;">
+                        ${icono} ${nombre.toUpperCase()} - ${item.displayDate}
+                    </div>
+                    <div style="color: var(--text-main); font-weight:500;">${snippet}</div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function goToItem(id, type) {
+            // Ir a la pantalla
+            const screenId = type === 'hito' ? 'timeline-screen' : 'quotes-screen';
+            showScreen(screenId);
+            
+            // Dar tiempo a que el DOM se dibuje antes de hacer scroll
+            setTimeout(() => {
+                const element = document.getElementById(`item-${id}`);
+                if(element) {
+                    // Hacer scroll
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Animación de destello
+                    element.classList.add('highlight-item');
+                    setTimeout(() => element.classList.remove('highlight-item'), 2500);
+                }
+            }, 100);
+        }
+
+        // --- RENDERIZAR VISTAS ---
+        function renderViews() {
+            const sortedDb = [...db].sort((a, b) => new Date(a.sortDate) - new Date(b.sortDate));
+
+            // Cronología
+            const timelineContainer = document.getElementById('timeline-container');
+            const hitos = sortedDb.filter(item => item.type === 'hito');
+            
+            if(hitos.length === 0) {
+                timelineContainer.innerHTML = '<p style="text-align:center; color:var(--text-muted);">No hay hitos guardados. ¡Añade el primero!</p>';
+            } else {
+                timelineContainer.innerHTML = hitos.map(item => `
+                    <div class="container-tl scroll-item ${item.child}" id="item-${item.id}" data-date="${item.sortDate}">
+                        <div class="content-tl">
+                            <button class="delete-btn" onclick="deleteEntry(${item.id}, event)">🗑️</button>
+                            <div class="date-badge">${item.displayDate}</div>
+                            <div>${item.text}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Frases (Invertidas)
+            const quotesContainer = document.getElementById('quotes-container');
+            const frases = sortedDb.filter(item => item.type === 'frase');
+            
+            if(frases.length === 0) {
+                quotesContainer.innerHTML = '<p style="text-align:center; color:var(--text-muted);">No hay frases guardadas.</p>';
+            } else {
+                quotesContainer.innerHTML = frases.map(item => `
+                    <div class="quote-card scroll-item ${item.child}" id="item-${item.id}" data-date="${item.sortDate}">
+                        <button class="delete-btn" onclick="deleteEntry(${item.id}, event)" style="color:inherit;">🗑️</button>
+                        " ${item.text} "
+                        <div class="quote-author">- ${item.child.toUpperCase()} (${item.displayDate})</div>
+                    </div>
+                `).reverse().join('');
+            }
+        }
+
+        // --- DETECTOR DE SCROLL (FECHA FLOTANTE) ---
+        let scrollTimeout;
+        const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+        window.addEventListener('scroll', () => {
+            const activeScreen = document.querySelector('.screen:not(.hidden)');
+            // Solo actuar si estamos en Cronología o Frases
+            if (!activeScreen || activeScreen.id === 'home-screen' || activeScreen.id === 'login-screen') return;
+
+            const items = activeScreen.querySelectorAll('.scroll-item');
+            let currentItem = null;
+
+            // Buscar qué elemento está más cerca de la parte superior de la pantalla
+            items.forEach(item => {
+                const rect = item.getBoundingClientRect();
+                // Si la parte de arriba del elemento está entre 0 y 300px desde arriba
+                if (rect.top >= 0 && rect.top < 350) {
+                    currentItem = item;
+                }
+            });
+
+            if (currentItem) {
+                const dateVal = currentItem.getAttribute('data-date'); // ej: "2025-10"
+                const indicator = document.getElementById('scroll-indicator');
+                
+                if (dateVal) {
+                    const [year, month] = dateVal.split('-');
+                    indicator.innerText = `${months[parseInt(month)-1]} ${year}`;
+                    indicator.classList.add('visible');
+                    
+                    // Borrar el temporizador anterior y crear uno nuevo para ocultarlo
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = setTimeout(() => {
+                        indicator.classList.remove('visible');
+                    }, 1500);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
