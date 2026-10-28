@@ -157,18 +157,18 @@
     </div>
 
     <!-- --- JAVASCRIPT --- -->
-    <script>
+<script>
         // Configura tus claves de Supabase
         const SUPABASE_URL = 'https://dwltmdxtnzdgbfruxxbd.supabase.co';
         const SUPABASE_ANON_KEY = '77d4801d-5cbd-4afb-be12-f91d2daa19d7';
         
-        let supabase = null;
+        let supabaseClient = null;
         let db = [];
 
-        // Inicializar Supabase de forma segura
+        // Inicializar Supabase con un nombre que no colisione
         try {
             if (window.supabase && window.supabase.createClient) {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             } else {
                 console.warn('Librería Supabase no disponible en ventana global.');
             }
@@ -185,7 +185,7 @@
             document.body.classList.add('dark-mode');
         }
 
-        // Login (Siempre desbloquea y luego intenta sincronizar)
+        // Login
         document.getElementById('pass-input').addEventListener('keypress', function (e) { 
             if (e.key === 'Enter') checkLogin(); 
         });
@@ -202,31 +202,30 @@
             document.getElementById('home-screen').classList.remove('hidden');
             document.getElementById('fab').classList.remove('hidden');
 
-            // Intenta cargar datos de Supabase en segundo plano
+            // Cargar datos
             await loadMemoriesFromCloud();
         }
 
         async function loadMemoriesFromCloud() {
-            if (!supabase) {
-                alert('Aviso: No se pudo cargar el cliente de Supabase (posiblemente bloqueado por adblock o sin conexión). Se continuará en modo local.');
+            if (!supabaseClient) {
+                console.warn('Supabase no disponible, funcionando en local.');
                 return;
             }
 
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('memories')
                     .select('*');
 
                 if (error) {
-                    alert('Error de Supabase: ' + (error.message || JSON.stringify(error)));
+                    alert('Aviso de base de datos: ' + (error.message || JSON.stringify(error)));
                     console.error('Error al leer Supabase:', error);
                 } else {
                     db = data || [];
                     renderViews();
                 }
             } catch (err) {
-                alert('Error de red al consultar Supabase: ' + err.message);
-                console.error(err);
+                console.error('Error de red al consultar Supabase:', err);
             }
         }
 
@@ -274,8 +273,7 @@
 
             const newEntry = { type, child, text, sort_date, display_date };
 
-            if (!supabase) {
-                // Respaldo local si la nube falla
+            if (!supabaseClient) {
                 newEntry.id = Date.now();
                 db.push(newEntry);
                 closeModal();
@@ -286,13 +284,13 @@
             }
 
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('memories')
                     .insert([newEntry])
                     .select();
 
                 if (error) {
-                    alert('Error al guardar en Supabase: ' + (error.message || JSON.stringify(error)));
+                    alert('Error al guardar: ' + error.message);
                     console.error(error);
                 } else if (data && data.length > 0) {
                     db.push(data[0]);
@@ -300,7 +298,7 @@
                     renderViews();
                 }
             } catch (err) {
-                alert('Error al conectar con la base de datos: ' + err.message);
+                alert('Error al conectar: ' + err.message);
                 console.error(err);
             } finally {
                 saveBtn.innerText = 'Guardar';
@@ -313,19 +311,19 @@
             event.stopPropagation();
             if (!confirm('¿Seguro que quieres borrar este recuerdo?')) return;
 
-            if (supabase) {
+            if (supabaseClient) {
                 try {
-                    const { error } = await supabase
+                    const { error } = await supabaseClient
                         .from('memories')
                         .delete()
                         .eq('id', id);
 
                     if (error) {
-                        alert('Error al borrar de la nube: ' + error.message);
+                        alert('Error al borrar: ' + error.message);
                         return;
                     }
                 } catch (err) {
-                    alert('Error de conexión al borrar: ' + err.message);
+                    alert('Error al borrar: ' + err.message);
                     return;
                 }
             }
