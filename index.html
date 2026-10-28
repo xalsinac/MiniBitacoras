@@ -6,10 +6,9 @@
     <title>Diario de LIA y MAX</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#f0f2f5">
-    <!-- Cargamos Supabase -->
+    <!-- Librería Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* --- TUS ESTILOS EXACTAMENTE IGUALES --- */
         :root {
             --lia-color: #fff0f2; --lia-dark: #ff758f; --lia-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
             --max-color: #e3f2fd; --max-dark: #4fc3f7; --max-gradient: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
@@ -83,7 +82,6 @@
 </head>
 <body>
 
-    <!-- Indicador Flotante -->
     <div id="scroll-indicator">Oct 2025</div>
 
     <!-- 1. Pantalla de Login -->
@@ -92,7 +90,6 @@
             <h2>¡Hola Familia! 👋</h2>
             <p>Introduce la contraseña para entrar al diario.</p>
             <input type="password" id="pass-input" placeholder="Contraseña">
-            <!-- Cambiamos el texto del botón mientras carga -->
             <button id="login-btn" onclick="checkLogin()">Acceder</button>
         </div>
     </div>
@@ -141,7 +138,6 @@
         <div class="quotes-grid" id="quotes-container"></div>
     </div>
 
-    <!-- Botón Flotante -->
     <button id="fab" class="hidden" onclick="openModal()">+</button>
 
     <!-- Modal Añadir -->
@@ -160,19 +156,27 @@
         </div>
     </div>
 
-    <!-- --- LÓGICA CONECTADA A SUPABASE --- -->
+    <!-- --- JAVASCRIPT --- -->
     <script>
-        // ⚠️⚠️ PON AQUÍ TUS CLAVES DE SUPABASE ⚠️⚠️
+        // Configura tus claves de Supabase
         const SUPABASE_URL = 'https://dwltmdxtnzdgbfruxxbd.supabase.co';
         const SUPABASE_ANON_KEY = '77d4801d-5cbd-4afb-be12-f91d2daa19d7';
         
-        // Inicializar Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let supabase = null;
+        let db = [];
 
-        // Ya no usamos localStorage para la DB, empezamos con un array vacío.
-        let db = []; 
+        // Inicializar Supabase de forma segura
+        try {
+            if (window.supabase && window.supabase.createClient) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } else {
+                console.warn('Librería Supabase no disponible en ventana global.');
+            }
+        } catch (e) {
+            console.error('Error al inicializar cliente Supabase:', e);
+        }
 
-        // --- MODO OSCURO ---
+        // Modo Oscuro
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
             localStorage.setItem('kidsAppTheme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
@@ -181,47 +185,61 @@
             document.body.classList.add('dark-mode');
         }
 
-        // --- LOGIN Y CARGA DE DATOS ---
-        document.getElementById('pass-input').addEventListener('keypress', function (e) { if (e.key === 'Enter') checkLogin(); });
+        // Login (Siempre desbloquea y luego intenta sincronizar)
+        document.getElementById('pass-input').addEventListener('keypress', function (e) { 
+            if (e.key === 'Enter') checkLogin(); 
+        });
 
         async function checkLogin() {
             const pass = document.getElementById('pass-input').value;
-            if (pass === '5588') {
-                const btn = document.getElementById('login-btn');
-                btn.innerText = 'Cargando recuerdos...';
-                
-                // Descargar datos de Supabase
+            if (pass !== '5588') {
+                alert('Contraseña incorrecta.');
+                return;
+            }
+
+            // Desbloquea la interfaz de inmediato
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('home-screen').classList.remove('hidden');
+            document.getElementById('fab').classList.remove('hidden');
+
+            // Intenta cargar datos de Supabase en segundo plano
+            await loadMemoriesFromCloud();
+        }
+
+        async function loadMemoriesFromCloud() {
+            if (!supabase) {
+                alert('Aviso: No se pudo cargar el cliente de Supabase (posiblemente bloqueado por adblock o sin conexión). Se continuará en modo local.');
+                return;
+            }
+
+            try {
                 const { data, error } = await supabase
                     .from('memories')
                     .select('*');
 
                 if (error) {
-                    alert('Error conectando a la base de datos. Revisa tus claves.');
-                    btn.innerText = 'Acceder';
-                    console.error(error);
+                    alert('Error de Supabase: ' + (error.message || JSON.stringify(error)));
+                    console.error('Error al leer Supabase:', error);
                 } else {
-                    db = data || []; // Guardamos los datos descargados
-                    
-                    document.getElementById('login-screen').classList.add('hidden');
-                    document.getElementById('home-screen').classList.remove('hidden');
-                    document.getElementById('fab').classList.remove('hidden');
+                    db = data || [];
                     renderViews();
                 }
-            } else {
-                alert('Contraseña incorrecta.');
+            } catch (err) {
+                alert('Error de red al consultar Supabase: ' + err.message);
+                console.error(err);
             }
         }
 
-        // --- NAVEGACIÓN Y MODAL ---
+        // Navegación
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
             document.getElementById(screenId).classList.remove('hidden');
-            if(screenId !== 'home-screen') {
+            if (screenId !== 'home-screen') {
                 document.getElementById('search-input').value = '';
                 document.getElementById('search-results').innerHTML = '';
             }
             renderViews();
-            window.scrollTo(0,0);
+            window.scrollTo(0, 0);
         }
 
         function openModal() {
@@ -236,7 +254,7 @@
             document.getElementById('input-display-date').value = '';
         }
 
-        // --- GUARDAR EN SUPABASE ---
+        // Guardar Datos
         async function saveData() {
             const type = document.getElementById('input-type').value;
             const child = document.getElementById('input-child').value;
@@ -244,62 +262,96 @@
             const sort_date = document.getElementById('input-sort-date').value;
             let display_date = document.getElementById('input-display-date').value;
 
-            if(!text || !sort_date) { alert('Rellena al menos el texto y el Mes/Año'); return; }
-            if(!display_date) display_date = sort_date;
+            if (!text || !sort_date) { 
+                alert('Rellena al menos el texto y el Mes/Año'); 
+                return; 
+            }
+            if (!display_date) display_date = sort_date;
 
             const saveBtn = document.getElementById('save-btn');
             saveBtn.innerText = 'Guardando...';
             saveBtn.disabled = true;
 
             const newEntry = { type, child, text, sort_date, display_date };
-            
-            // Subir a la nube
-            const { data, error } = await supabase
-                .from('memories')
-                .insert([newEntry])
-                .select(); // Le decimos que nos devuelva el registro creado (con su ID)
 
-            if(error) {
-                alert('Hubo un error guardando el recuerdo.');
-                console.error(error);
-            } else {
-                db.push(data[0]); // Lo añadimos a la app instantáneamente
+            if (!supabase) {
+                // Respaldo local si la nube falla
+                newEntry.id = Date.now();
+                db.push(newEntry);
                 closeModal();
                 renderViews();
+                saveBtn.innerText = 'Guardar';
+                saveBtn.disabled = false;
+                return;
             }
 
-            saveBtn.innerText = 'Guardar';
-            saveBtn.disabled = false;
-        }
-
-        // --- BORRAR EN SUPABASE ---
-        async function deleteEntry(id, event) {
-            event.stopPropagation();
-            if(confirm('¿Seguro que quieres borrar este recuerdo para siempre?')) {
-                // Borrar en la nube
-                const { error } = await supabase
+            try {
+                const { data, error } = await supabase
                     .from('memories')
-                    .delete()
-                    .eq('id', id);
+                    .insert([newEntry])
+                    .select();
 
-                if(error) {
-                    alert('No se pudo borrar.');
-                } else {
-                    // Borrar de la app
-                    db = db.filter(item => item.id !== id);
+                if (error) {
+                    alert('Error al guardar en Supabase: ' + (error.message || JSON.stringify(error)));
+                    console.error(error);
+                } else if (data && data.length > 0) {
+                    db.push(data[0]);
+                    closeModal();
                     renderViews();
                 }
+            } catch (err) {
+                alert('Error al conectar con la base de datos: ' + err.message);
+                console.error(err);
+            } finally {
+                saveBtn.innerText = 'Guardar';
+                saveBtn.disabled = false;
             }
         }
 
-        // --- BUSCADOR ---
+        // Borrar Datos
+        async function deleteEntry(id, event) {
+            event.stopPropagation();
+            if (!confirm('¿Seguro que quieres borrar este recuerdo?')) return;
+
+            if (supabase) {
+                try {
+                    const { error } = await supabase
+                        .from('memories')
+                        .delete()
+                        .eq('id', id);
+
+                    if (error) {
+                        alert('Error al borrar de la nube: ' + error.message);
+                        return;
+                    }
+                } catch (err) {
+                    alert('Error de conexión al borrar: ' + err.message);
+                    return;
+                }
+            }
+
+            db = db.filter(item => item.id !== id);
+            renderViews();
+        }
+
+        // Buscador
         function doSearch() {
             const query = document.getElementById('search-input').value.toLowerCase();
             const resultsContainer = document.getElementById('search-results');
-            if (query.length < 2) { resultsContainer.innerHTML = ''; return; }
+            if (query.length < 2) { 
+                resultsContainer.innerHTML = ''; 
+                return; 
+            }
             
-            const results = db.filter(item => item.text.toLowerCase().includes(query) || item.display_date.toLowerCase().includes(query));
-            if(results.length === 0) { resultsContainer.innerHTML = '<div style="padding:15px; text-align:center;">No hay resultados</div>'; return; }
+            const results = db.filter(item => 
+                (item.text && item.text.toLowerCase().includes(query)) || 
+                (item.display_date && item.display_date.toLowerCase().includes(query))
+            );
+            
+            if (results.length === 0) { 
+                resultsContainer.innerHTML = '<div style="padding:15px; text-align:center;">No hay resultados</div>'; 
+                return; 
+            }
 
             resultsContainer.innerHTML = results.map(item => {
                 const icono = item.type === 'hito' ? '📅' : '💬';
@@ -315,7 +367,7 @@
             showScreen(type === 'hito' ? 'timeline-screen' : 'quotes-screen');
             setTimeout(() => {
                 const element = document.getElementById(`item-${id}`);
-                if(element) {
+                if (element) {
                     element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     element.classList.add('highlight-item');
                     setTimeout(() => element.classList.remove('highlight-item'), 2500);
@@ -323,14 +375,15 @@
             }, 100);
         }
 
-        // --- RENDERIZAR VISTAS ---
+        // Renderizado
         function renderViews() {
             const sortedDb = [...db].sort((a, b) => new Date(a.sort_date) - new Date(b.sort_date));
 
             const timelineContainer = document.getElementById('timeline-container');
             const hitos = sortedDb.filter(item => item.type === 'hito');
-            if(hitos.length === 0) { timelineContainer.innerHTML = '<p style="text-align:center;">No hay hitos.</p>'; } 
-            else {
+            if (hitos.length === 0) { 
+                timelineContainer.innerHTML = '<p style="text-align:center;">No hay hitos guardados.</p>'; 
+            } else {
                 timelineContainer.innerHTML = hitos.map(item => `
                     <div class="container-tl scroll-item ${item.child}" id="item-${item.id}" data-date="${item.sort_date}">
                         <div class="content-tl"><button class="delete-btn" onclick="deleteEntry(${item.id}, event)">🗑️</button>
@@ -340,8 +393,9 @@
 
             const quotesContainer = document.getElementById('quotes-container');
             const frases = sortedDb.filter(item => item.type === 'frase');
-            if(frases.length === 0) { quotesContainer.innerHTML = '<p style="text-align:center;">No hay frases.</p>'; } 
-            else {
+            if (frases.length === 0) { 
+                quotesContainer.innerHTML = '<p style="text-align:center;">No hay frases guardadas.</p>'; 
+            } else {
                 quotesContainer.innerHTML = frases.map(item => `
                     <div class="quote-card scroll-item ${item.child}" id="item-${item.id}" data-date="${item.sort_date}">
                         <button class="delete-btn" onclick="deleteEntry(${item.id}, event)" style="color:inherit;">🗑️</button>
@@ -350,14 +404,18 @@
             }
         }
 
-        // --- SCROLL INDICATOR ---
-        let scrollTimeout; const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        // Indicador de Scroll
+        let scrollTimeout; 
+        const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
         window.addEventListener('scroll', () => {
             const activeScreen = document.querySelector('.screen:not(.hidden)');
             if (!activeScreen || activeScreen.id === 'home-screen' || activeScreen.id === 'login-screen') return;
             const items = activeScreen.querySelectorAll('.scroll-item');
             let currentItem = null;
-            items.forEach(item => { const rect = item.getBoundingClientRect(); if (rect.top >= 0 && rect.top < 350) currentItem = item; });
+            items.forEach(item => { 
+                const rect = item.getBoundingClientRect(); 
+                if (rect.top >= 0 && rect.top < 350) currentItem = item; 
+            });
             if (currentItem) {
                 const dateVal = currentItem.getAttribute('data-date');
                 if (dateVal) {
