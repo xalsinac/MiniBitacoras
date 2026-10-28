@@ -34,6 +34,11 @@
             padding-bottom: calc(90px + env(safe-area-inset-bottom)); 
             transition: background-color 0.3s, color 0.3s; 
         }
+        ::placeholder {
+            color: var(--text-muted);
+            opacity: 0.55;
+            font-size: 0.95rem;
+        }
         .hidden { display: none !important; }
         .screen { padding: 20px; max-width: 600px; margin: 0 auto; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -71,14 +76,107 @@
         .content-tl { padding: 15px; border-radius: 15px; position: relative; box-shadow: var(--shadow); background: var(--card-bg); }
         .lia .content-tl { border-left: 5px solid var(--lia-dark); background-color: var(--lia-color); }
         .max .content-tl { border-left: 5px solid var(--max-dark); background-color: var(--max-color); }
-        .date-badge { font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; color: var(--text-muted); }
-        .delete-btn { position: absolute; top: 12px; right: 12px; background: none; border: none; font-size: 1.1rem; cursor: pointer; opacity: 0.6; }
+        .date-badge { font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; color: var(--text-muted); padding-right: 20px; }
         .quotes-grid { display: flex; flex-direction: column; gap: 15px; }
         .quote-card { padding: 20px; border-radius: 15px; position: relative; font-size: 1.15rem; font-style: italic; box-shadow: var(--shadow); line-height: 1.4; }
         .quote-card.lia { background: var(--lia-gradient); color: #fff; }
         .quote-card.max { background: var(--max-gradient); color: #2d3436; }
         body.dark-mode .quote-card.max { color: #fff; }
         .quote-author { font-size: 0.9rem; font-weight: bold; margin-top: 15px; text-align: right; font-style: normal; }
+
+        /* --- MENÚ DE ACCIONES (TRES PUNTOS) --- */
+        .card-menu-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: inherit;
+            opacity: 0.65;
+            padding: 4px 8px;
+            line-height: 1;
+            border-radius: 8px;
+            z-index: 5;
+        }
+        .card-menu-btn:active {
+            opacity: 1;
+            background: rgba(0,0,0,0.05);
+        }
+        .card-dropdown {
+            position: absolute;
+            top: 36px;
+            right: 8px;
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            display: none;
+            flex-direction: column;
+            min-width: 130px;
+            overflow: hidden;
+            z-index: 20;
+            font-style: normal;
+            font-size: 0.9rem;
+        }
+        .card-dropdown.active {
+            display: flex;
+        }
+        .card-dropdown button {
+            background: none;
+            border: none;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-color);
+            font-family: inherit;
+        }
+        .card-dropdown button:last-child {
+            border-bottom: none;
+        }
+        .card-dropdown button:active {
+            background: rgba(0,0,0,0.06);
+        }
+        body.dark-mode .card-dropdown button:active {
+            background: rgba(255,255,255,0.08);
+        }
+        .card-dropdown button.btn-delete-opt {
+            color: #ff4757;
+        }
+
+        /* Toast para aviso de copiado */
+        #toast-notice {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            z-index: 3000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+        }
+        #toast-notice.visible {
+            opacity: 1;
+        }
+        body.dark-mode #toast-notice {
+            background: rgba(255, 255, 255, 0.92);
+            color: #121212;
+        }
+
         @keyframes highlightPulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); box-shadow: 0 0 20px var(--max-dark); } 100% { transform: scale(1); } }
         .highlight-item > .content-tl, .highlight-item.quote-card { animation: highlightPulse 2s ease; }
         #add-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
@@ -95,6 +193,7 @@
 <body>
 
     <div id="scroll-indicator">Oct 2025</div>
+    <div id="toast-notice">Copiado al portapapeles</div>
 
     <!-- 1. Pantalla de Login -->
     <div id="login-screen">
@@ -152,14 +251,18 @@
 
     <button id="fab" class="hidden" onclick="openModal()">+</button>
 
-    <!-- Modal Añadir -->
+    <!-- Modal Añadir / Editar -->
     <div id="add-modal" class="hidden">
         <div class="modal-content">
-            <h2 style="margin-top:0; text-align: center;">Añadir Recuerdo</h2>
+            <h2 id="modal-title" style="margin-top:0; text-align: center;">Añadir Recuerdo</h2>
+            <input type="hidden" id="edit-entry-id" value="">
             <div class="form-group"><label>¿Qué vas a guardar?</label><select id="input-type"><option value="hito">📅 Un Hito</option><option value="frase">💬 Una Frase</option></select></div>
             <div class="form-group"><label>¿Quién es el protagonista?</label><select id="input-child"><option value="lia">👧 Lía</option><option value="max">👦 Max</option></select></div>
             <div class="form-group"><label>Escribe aquí...</label><textarea id="input-text" rows="3"></textarea></div>
-            <div class="form-group"><label>Mes y Año (Orden)</label><input type="month" id="input-sort-date" required></div>
+            <div class="form-group">
+                <label>Mes y Año (Orden)</label>
+                <input type="text" id="input-sort-date" placeholder="MM/AAAA (ej: 03/2025)" maxlength="7" inputmode="numeric" oninput="formatMonthYear(this)" required>
+            </div>
             <div class="form-group"><label>Texto de la fecha (Opcional)</label><input type="text" id="input-display-date" placeholder="Ej: 'A los 7 meses'"></div>
             <div class="btn-row">
                 <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
@@ -192,8 +295,11 @@
 
         // Modo Oscuro
         function updateThemeMeta(isDark) {
+            const color = isDark ? '#121212' : '#f4f7f6';
             const metaTheme = document.getElementById('theme-color-meta');
-            if (metaTheme) metaTheme.setAttribute('content', isDark ? '#121212' : '#f4f7f6');
+            if (metaTheme) metaTheme.setAttribute('content', color);
+            document.documentElement.style.backgroundColor = color;
+            document.body.style.backgroundColor = color;
         }
 
         function toggleDarkMode() {
@@ -253,6 +359,7 @@
 
         // Navegación
         function showScreen(screenId) {
+            closeAllDropdowns();
             document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
             document.getElementById(screenId).classList.remove('hidden');
             if (screenId !== 'home-screen') {
@@ -263,41 +370,107 @@
             window.scrollTo(0, 0);
         }
 
-        function openModal() {
-            const today = new Date();
-            document.getElementById('input-sort-date').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+        // Formateo de fecha MM/AAAA en el input
+        function formatMonthYear(input) {
+            let val = input.value.replace(/\D/g, '');
+            if (val.length > 2) {
+                input.value = val.substring(0, 2) + '/' + val.substring(2, 6);
+            } else {
+                input.value = val;
+            }
+        }
+
+        // Convertir YYYY-MM a MM/YYYY para mostrar en el formulario
+        function isoToMmYyyy(iso) {
+            if (!iso || !iso.includes('-')) return '';
+            const [y, m] = iso.split('-');
+            return `${m}/${y}`;
+        }
+
+        // Modal
+        function openModal(editItem = null) {
+            closeAllDropdowns();
+            const modalTitle = document.getElementById('modal-title');
+            const editIdInput = document.getElementById('edit-entry-id');
+
+            if (editItem) {
+                modalTitle.innerText = 'Modificar Recuerdo';
+                editIdInput.value = editItem.id;
+                document.getElementById('input-type').value = editItem.type;
+                document.getElementById('input-child').value = editItem.child;
+                document.getElementById('input-text').value = editItem.text;
+                document.getElementById('input-sort-date').value = isoToMmYyyy(editItem.sort_date);
+                document.getElementById('input-display-date').value = editItem.display_date || '';
+            } else {
+                modalTitle.innerText = 'Añadir Recuerdo';
+                editIdInput.value = '';
+                const today = new Date();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const yyyy = today.getFullYear();
+                document.getElementById('input-sort-date').value = `${mm}/${yyyy}`;
+                document.getElementById('input-text').value = '';
+                document.getElementById('input-display-date').value = '';
+            }
+
             document.getElementById('add-modal').classList.remove('hidden');
         }
 
         function closeModal() {
             document.getElementById('add-modal').classList.add('hidden');
+            document.getElementById('edit-entry-id').value = '';
             document.getElementById('input-text').value = '';
             document.getElementById('input-display-date').value = '';
         }
 
-        // Guardar Datos
+        // Guardar Datos (Crear o Actualizar)
         async function saveData() {
+            const editId = document.getElementById('edit-entry-id').value;
             const type = document.getElementById('input-type').value;
             const child = document.getElementById('input-child').value;
-            const text = document.getElementById('input-text').value;
-            const sort_date = document.getElementById('input-sort-date').value;
-            let display_date = document.getElementById('input-display-date').value;
+            const text = document.getElementById('input-text').value.trim();
+            const rawDate = document.getElementById('input-sort-date').value.trim();
+            let display_date = document.getElementById('input-display-date').value.trim();
 
-            if (!text || !sort_date) { 
-                alert('Rellena al menos el texto y el Mes/Año'); 
+            if (!text || !rawDate) { 
+                alert('Rellena al menos el texto y el Mes/Año.'); 
                 return; 
             }
-            if (!display_date) display_date = sort_date;
+
+            // Validar y convertir MM/AAAA a YYYY-MM
+            let sort_date = '';
+            if (rawDate.includes('/')) {
+                const parts = rawDate.split('/');
+                const m = parseInt(parts[0], 10);
+                const y = parseInt(parts[1], 10);
+                if (m >= 1 && m <= 12 && parts[1].length === 4 && y >= 1900) {
+                    sort_date = `${parts[1]}-${String(m).padStart(2, '0')}`;
+                }
+            } else if (rawDate.includes('-') && rawDate.length === 7) {
+                sort_date = rawDate;
+            }
+
+            if (!sort_date) {
+                alert('El formato de fecha debe ser MM/AAAA (por ejemplo: 03/2025).');
+                return;
+            }
+
+            if (!display_date) display_date = rawDate;
 
             const saveBtn = document.getElementById('save-btn');
             saveBtn.innerText = 'Guardando...';
             saveBtn.disabled = true;
 
-            const newEntry = { type, child, text, sort_date, display_date };
+            const payload = { type, child, text, sort_date, display_date };
 
+            // Modo sin cliente Supabase (local)
             if (!supabaseClient) {
-                newEntry.id = Date.now();
-                db.push(newEntry);
+                if (editId) {
+                    const idx = db.findIndex(item => String(item.id) === String(editId));
+                    if (idx !== -1) db[idx] = { ...db[idx], ...payload };
+                } else {
+                    payload.id = Date.now();
+                    db.push(payload);
+                }
                 closeModal();
                 renderViews();
                 saveBtn.innerText = 'Guardar';
@@ -305,22 +478,39 @@
                 return;
             }
 
+            // Modo con Supabase
             try {
-                const { data, error } = await supabaseClient
-                    .from('memories')
-                    .insert([newEntry])
-                    .select();
+                if (editId) {
+                    const { data, error } = await supabaseClient
+                        .from('memories')
+                        .update(payload)
+                        .eq('id', editId)
+                        .select();
 
-                if (error) {
-                    alert('Error al guardar: ' + error.message);
-                    console.error(error);
-                } else if (data && data.length > 0) {
-                    db.push(data[0]);
-                    closeModal();
-                    renderViews();
+                    if (error) {
+                        alert('Error al modificar: ' + error.message);
+                    } else if (data && data.length > 0) {
+                        const idx = db.findIndex(item => String(item.id) === String(editId));
+                        if (idx !== -1) db[idx] = data[0];
+                        closeModal();
+                        renderViews();
+                    }
+                } else {
+                    const { data, error } = await supabaseClient
+                        .from('memories')
+                        .insert([payload])
+                        .select();
+
+                    if (error) {
+                        alert('Error al guardar: ' + error.message);
+                    } else if (data && data.length > 0) {
+                        db.push(data[0]);
+                        closeModal();
+                        renderViews();
+                    }
                 }
             } catch (err) {
-                alert('Error al conectar: ' + err.message);
+                alert('Error al conectar con la base de datos: ' + err.message);
                 console.error(err);
             } finally {
                 saveBtn.innerText = 'Guardar';
@@ -330,7 +520,8 @@
 
         // Borrar Datos
         async function deleteEntry(id, event) {
-            event.stopPropagation();
+            if (event) event.stopPropagation();
+            closeAllDropdowns();
             if (!confirm('¿Seguro que quieres borrar este recuerdo?')) return;
 
             if (supabaseClient) {
@@ -350,8 +541,77 @@
                 }
             }
 
-            db = db.filter(item => item.id !== id);
+            db = db.filter(item => String(item.id) !== String(id));
             renderViews();
+        }
+
+        // Editar entrada
+        function editEntry(id, event) {
+            if (event) event.stopPropagation();
+            closeAllDropdowns();
+            const item = db.find(it => String(it.id) === String(id));
+            if (item) openModal(item);
+        }
+
+        // Copiar entrada formateada para WhatsApp
+        async function copyEntry(id, event) {
+            if (event) event.stopPropagation();
+            closeAllDropdowns();
+            const item = db.find(it => String(it.id) === String(id));
+            if (!item) return;
+
+            const nombre = item.child === 'lia' ? 'Lía' : 'Max';
+            let formattedText = '';
+            if (item.type === 'frase') {
+                formattedText = `💬 "${item.text}"\n— ${nombre} (${item.display_date})`;
+            } else {
+                formattedText = `📅 *${nombre}* (${item.display_date}):\n${item.text}`;
+            }
+
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(formattedText);
+                } else {
+                    const ta = document.createElement('textarea');
+                    ta.value = formattedText;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                }
+                showToast('¡Copiado para WhatsApp! 📋');
+            } catch (err) {
+                console.error('Error al copiar:', err);
+                showToast('No se pudo copiar');
+            }
+        }
+
+        // Control del menú desplegable (⋮)
+        function toggleCardMenu(id, event) {
+            event.stopPropagation();
+            const targetMenu = document.getElementById(`dropdown-${id}`);
+            const wasActive = targetMenu && targetMenu.classList.contains('active');
+            closeAllDropdowns();
+            if (targetMenu && !wasActive) {
+                targetMenu.classList.add('active');
+            }
+        }
+
+        function closeAllDropdowns() {
+            document.querySelectorAll('.card-dropdown').forEach(m => m.classList.remove('active'));
+        }
+
+        // Cierra los desplegables al tocar fuera
+        document.addEventListener('click', () => closeAllDropdowns());
+
+        // Notificación flotante (toast)
+        let toastTimeout;
+        function showToast(text) {
+            const toast = document.getElementById('toast-notice');
+            toast.innerText = text;
+            toast.classList.add('visible');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toast.classList.remove('visible'), 2000);
         }
 
         // Buscador
@@ -395,6 +655,18 @@
             }, 100);
         }
 
+        // Helper para crear el bloque HTML del menú de acciones
+        function renderCardMenu(id) {
+            return `
+                <button class="card-menu-btn" onclick="toggleCardMenu(${id}, event)" title="Opciones">⋮</button>
+                <div class="card-dropdown" id="dropdown-${id}">
+                    <button onclick="copyEntry(${id}, event)">📋 Copiar</button>
+                    <button onclick="editEntry(${id}, event)">✏️ Modificar</button>
+                    <button class="btn-delete-opt" onclick="deleteEntry(${id}, event)">🗑️ Borrar</button>
+                </div>
+            `;
+        }
+
         // Renderizado
         function renderViews() {
             const sortedDb = [...db].sort((a, b) => new Date(a.sort_date) - new Date(b.sort_date));
@@ -406,8 +678,11 @@
             } else {
                 timelineContainer.innerHTML = hitos.map(item => `
                     <div class="container-tl scroll-item ${item.child}" id="item-${item.id}" data-date="${item.sort_date}">
-                        <div class="content-tl"><button class="delete-btn" onclick="deleteEntry(${item.id}, event)">🗑️</button>
-                        <div class="date-badge">${item.display_date}</div><div>${item.text}</div></div>
+                        <div class="content-tl">
+                            ${renderCardMenu(item.id)}
+                            <div class="date-badge">${item.display_date}</div>
+                            <div>${item.text}</div>
+                        </div>
                     </div>`).join('');
             }
 
@@ -418,8 +693,9 @@
             } else {
                 quotesContainer.innerHTML = frases.map(item => `
                     <div class="quote-card scroll-item ${item.child}" id="item-${item.id}" data-date="${item.sort_date}">
-                        <button class="delete-btn" onclick="deleteEntry(${item.id}, event)" style="color:inherit;">🗑️</button>
-                        " ${item.text} " <div class="quote-author">- ${item.child.toUpperCase()} (${item.display_date})</div>
+                        ${renderCardMenu(item.id)}
+                        " ${item.text} " 
+                        <div class="quote-author">- ${item.child.toUpperCase()} (${item.display_date})</div>
                     </div>`).reverse().join('');
             }
         }
