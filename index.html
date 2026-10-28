@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MiniBitácora</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#f0f2f5">
+    <meta name="theme-color" id="theme-color-meta" content="#f4f7f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <!-- Librería Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -21,7 +23,7 @@
             --bg-color: #121212; --text-main: #f5f6fa; --text-muted: #a4b0be; --card-bg: #1e1e1e;
             --input-bg: #2d3436; --border-color: #444; --timeline-line: #444; --shadow: 0 8px 20px rgba(0,0,0,0.4);
         }
-        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; padding-bottom: 90px; transition: background-color 0.3s, color 0.3s; }
+        html, body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; padding-bottom: 90px; transition: background-color 0.3s, color 0.3s; }
         .hidden { display: none !important; }
         .screen { padding: 20px; max-width: 600px; margin: 0 auto; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -181,13 +183,23 @@ try {
 }
 
         // Modo Oscuro
+        function updateThemeMeta(isDark) {
+            const metaTheme = document.getElementById('theme-color-meta');
+            if (metaTheme) metaTheme.setAttribute('content', isDark ? '#121212' : '#f4f7f6');
+        }
+
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
-            localStorage.setItem('kidsAppTheme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('kidsAppTheme', isDark ? 'dark' : 'light');
+            updateThemeMeta(isDark);
         }
-        if (localStorage.getItem('kidsAppTheme') === 'dark' || (!localStorage.getItem('kidsAppTheme') && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+
+        const isDarkOnInit = localStorage.getItem('kidsAppTheme') === 'dark' || (!localStorage.getItem('kidsAppTheme') && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (isDarkOnInit) {
             document.body.classList.add('dark-mode');
         }
+        updateThemeMeta(isDarkOnInit);
 
         // Login
         document.getElementById('pass-input').addEventListener('keypress', function (e) { 
