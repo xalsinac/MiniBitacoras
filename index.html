@@ -28,11 +28,11 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0; padding: 0; 
-            min-height: 100dvh; /* Usamos dvh para móviles */
+            min-height: 100dvh;
         }
         body { 
-        padding-bottom: calc(90px + env(safe-area-inset-bottom)); 
-        transition: background-color 0.3s, color 0.3s;           
+            padding-bottom: calc(90px + env(safe-area-inset-bottom)); 
+            transition: background-color 0.3s, color 0.3s; 
         }
         .hidden { display: none !important; }
         .screen { padding: 20px; max-width: 600px; margin: 0 auto; animation: fadeIn 0.4s ease; }
@@ -48,7 +48,7 @@
         .login-card input { padding: 15px; font-size: 1.2rem; border-radius: 12px; border: 2px solid var(--border-color); text-align: center; margin-bottom: 20px; width: 100%; box-sizing: border-box; background: var(--input-bg); color: var(--text-main); }
         .login-card button { padding: 15px; width: 100%; font-size: 1.1rem; border-radius: 12px; border: none; background: linear-gradient(90deg, var(--lia-dark), var(--max-dark)); color: white; font-weight: bold; cursor: pointer; }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-top: 10px;}
-        header h1 { margin: 0; font-size: 2.2rem; text-align: center; flex-grow: 1; background: linear-gradient(90deg, var(--lia-dark), var(--max-dark)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        header h1 { margin: 0; font-size: 2.2rem; text-align: center; flex-grow: 1; background: linear-gradient(90deg, var(--lia-dark), var(--max-dark)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
         .header-title-small { font-size: 1.5rem; text-align: center; flex-grow: 1; color: var(--text-main); margin: 0;}
         .icon-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); padding: 5px; }
         .search-container { position: relative; margin-bottom: 25px; }
@@ -169,28 +169,26 @@
     </div>
 
     <!-- --- JAVASCRIPT --- -->
-<script>
-        // Configura tus claves de Supabase
+    <script>
         const SUPABASE_URL = 'https://dwltmdxtnzdgbfruxxbd.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_9KbD50_bHQ6xYVHV-D_SJw_JdLu9IEP';
         
         let supabaseClient = null;
         let db = [];
 
-// Inicialización adaptada al formato sb_publishable
-try {
+        try {
             if (window.supabase && window.supabase.createClient) {
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
                     global: {
                         headers: {
                             apikey: SUPABASE_ANON_KEY
+                        }
+                    }
+                });
             }
+        } catch (e) {
+            console.error('Error al inicializar cliente Supabase:', e);
         }
-    });
-}
-} catch (e) {
-    console.error('Error al inicializar cliente Supabase:', e);
-}
 
         // Modo Oscuro
         function updateThemeMeta(isDark) {
@@ -199,7 +197,6 @@ try {
         }
 
         function toggleDarkMode() {
-            // Cambiamos documentElement en lugar de body
             document.documentElement.classList.toggle('dark-mode');
             const isDark = document.documentElement.classList.contains('dark-mode');
             localStorage.setItem('kidsAppTheme', isDark ? 'dark' : 'light');
@@ -224,12 +221,10 @@ try {
                 return;
             }
 
-            // Desbloquea la interfaz de inmediato
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('home-screen').classList.remove('hidden');
             document.getElementById('fab').classList.remove('hidden');
 
-            // Cargar datos
             await loadMemoriesFromCloud();
         }
 
