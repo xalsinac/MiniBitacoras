@@ -160,21 +160,25 @@
 <script>
         // Configura tus claves de Supabase
         const SUPABASE_URL = 'https://dwltmdxtnzdgbfruxxbd.supabase.co';
-        const SUPABASE_ANON_KEY = '77d4801d-5cbd-4afb-be12-f91d2daa19d7';
+        const SUPABASE_ANON_KEY = 'sb_publishable_9KbD50_bHQ6xYVHV-D_SJw_JdLu9IEP';
         
         let supabaseClient = null;
         let db = [];
 
-        // Inicializar Supabase con un nombre que no colisione
-        try {
+// Inicialización adaptada al formato sb_publishable
+try {
             if (window.supabase && window.supabase.createClient) {
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            } else {
-                console.warn('Librería Supabase no disponible en ventana global.');
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                    global: {
+                        headers: {
+                            apikey: SUPABASE_ANON_KEY
             }
-        } catch (e) {
-            console.error('Error al inicializar cliente Supabase:', e);
         }
+    });
+}
+} catch (e) {
+    console.error('Error al inicializar cliente Supabase:', e);
+}
 
         // Modo Oscuro
         function toggleDarkMode() {
