@@ -1,12 +1,12 @@
 {
-  "name": "MiniBitácora",
-  "short_name": "LiaMax",
+  "name": "MiniBitácora Familiar",
+  "short_name": "Bitácora",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f4f7f6",
-  "theme_color": "#ff758f",
+  "background_color": "#0b0f19",
+  "theme_color": "#ff5d8f",
   "icons": [
-  {
+    {
       "src": "icon-512.png",
       "sizes": "192x192",
       "type": "image/png"

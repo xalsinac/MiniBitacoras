@@ -3,514 +3,1371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MiniBitácora</title>
+    <title>MiniBitácora Familiar</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" id="theme-color-meta" content="#f4f7f6">
+    <meta name="theme-color" id="theme-color-meta" content="#0d1117">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- Librería Supabase CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --lia-color: #fff0f2; --lia-dark: #ff758f; --lia-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-            --max-color: #e3f2fd; --max-dark: #4fc3f7; --max-gradient: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
-            --bg-color: #f4f7f6; --text-main: #2d3436; --text-muted: #636e72; --card-bg: #ffffff;
-            --input-bg: #ffffff; --border-color: #dfe6e9; --timeline-line: #b2bec3; --shadow: 0 8px 20px rgba(0,0,0,0.06);
+            /* --- Paleta de Cristal Translúcido de Color Total --- */
+            /* 1. Lía: Rosa Cristal Especular */
+            --lia-color: #f43f5e;
+            --lia-glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 30, 110, 0.32) 42%, rgba(255, 30, 110, 0.18) 100%);
+            --lia-glass-border: rgba(255, 255, 255, 0.45);
+            --lia-glass-glow: 0 8px 24px -3px rgba(255, 30, 110, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.55);
+            --lia-text: #881337;
+            --lia-badge-bg: rgba(255, 30, 110, 0.35);
+
+            /* 2. Max: Azul Cristal Especular */
+            --max-color: #0284c7;
+            --max-glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(2, 132, 199, 0.32) 42%, rgba(2, 132, 199, 0.18) 100%);
+            --max-glass-border: rgba(255, 255, 255, 0.45);
+            --max-glass-glow: 0 8px 24px -3px rgba(2, 132, 199, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.55);
+            --max-text: #075985;
+            --max-badge-bg: rgba(2, 132, 199, 0.35);
+
+            /* 3. Moni: Púrpura Cristal Especular */
+            --moni-color: #9333ea;
+            --moni-glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(147, 51, 234, 0.32) 42%, rgba(147, 51, 234, 0.18) 100%);
+            --moni-glass-border: rgba(255, 255, 255, 0.45);
+            --moni-glass-glow: 0 8px 24px -3px rgba(147, 51, 234, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.55);
+            --moni-text: #581c87;
+            --moni-badge-bg: rgba(147, 51, 234, 0.35);
+
+            /* 4. Xavi: Amarillo / Ámbar Cristal Especular */
+            --xavi-color: #d97706;
+            --xavi-glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(245, 158, 11, 0.38) 42%, rgba(245, 158, 11, 0.2) 100%);
+            --xavi-glass-border: rgba(255, 255, 255, 0.45);
+            --xavi-glass-glow: 0 8px 24px -3px rgba(245, 158, 11, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.55);
+            --xavi-text: #78350f;
+            --xavi-badge-bg: rgba(245, 158, 11, 0.4);
+
+            /* Tema Global Claro con orbes de fondo ricos para refracción */
+            --bg-color: #eef2f6;
+            --bg-mesh: radial-gradient(circle at 10% 10%, rgba(255,30,110,0.2) 0px, transparent 40%),
+                       radial-gradient(circle at 90% 10%, rgba(2,132,199,0.2) 0px, transparent 40%),
+                       radial-gradient(circle at 10% 90%, rgba(147,51,234,0.18) 0px, transparent 40%),
+                       radial-gradient(circle at 90% 90%, rgba(245,158,11,0.22) 0px, transparent 40%);
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --card-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.65) 100%);
+            --card-border: rgba(255, 255, 255, 0.95);
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --timeline-line: #94a3b8;
+            --shadow-glass: 0 12px 32px rgba(31, 38, 135, 0.08), inset 0 1px 1.5px rgba(255, 255, 255, 0.95);
         }
+
         html.dark-mode {
-            --lia-color: #3b2a2d; --lia-dark: #ff477e; --lia-gradient: linear-gradient(135deg, #5c3a41 0%, #3b2a2d 100%);
-            --max-color: #1a2a32; --max-dark: #29b6f6; --max-gradient: linear-gradient(135deg, #2a4b52 0%, #1a2a32 100%);
-            --bg-color: #121212; --text-main: #f5f6fa; --text-muted: #a4b0be; --card-bg: #1e1e1e;
-            --input-bg: #2d3436; --border-color: #444; --timeline-line: #444; --shadow: 0 8px 20px rgba(0,0,0,0.4);
+            /* Tema Global Oscuro */
+            --bg-color: #0b0f19;
+            --bg-mesh: radial-gradient(at 0% 0%, rgba(255,45,117,0.18) 0px, transparent 50%),
+                       radial-gradient(at 100% 0%, rgba(2,132,199,0.18) 0px, transparent 50%),
+                       radial-gradient(at 0% 100%, rgba(147,51,234,0.18) 0px, transparent 50%),
+                       radial-gradient(at 100% 100%, rgba(245,158,11,0.18) 0px, transparent 50%);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --card-glass: rgba(18, 24, 38, 0.75);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --input-bg: rgba(30, 41, 59, 0.8);
+            --timeline-line: #334155;
+            --shadow-glass: 0 10px 30px rgba(0, 0, 0, 0.45);
+
+            /* Ajuste de colores en Modo Oscuro para máximo contraste y viveza */
+            --lia-glass-bg: rgba(255, 45, 117, 0.22);
+            --lia-text: #ff85a2;
+            --max-glass-bg: rgba(2, 132, 199, 0.22);
+            --max-text: #7dd3fc;
+            --moni-glass-bg: rgba(147, 51, 234, 0.22);
+            --moni-text: #d8b4fe;
+            --xavi-glass-bg: rgba(245, 158, 11, 0.26);
+            --xavi-text: #fde047;
         }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         html, body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
+            background-image: var(--bg-mesh);
+            background-attachment: fixed;
             color: var(--text-main);
-            margin: 0; padding: 0; 
+            margin: 0; padding: 0;
             min-height: 100dvh;
+            overflow-x: hidden;
         }
-        body { 
-            padding-bottom: calc(90px + env(safe-area-inset-bottom)); 
-            transition: background-color 0.3s, color 0.3s; 
+
+        body {
+            padding-bottom: calc(90px + env(safe-area-inset-bottom));
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
-        ::placeholder {
-            color: var(--text-muted);
-            opacity: 0.55;
-            font-size: 0.95rem;
-        }
+
         .hidden { display: none !important; }
-        .screen { padding: 20px; max-width: 600px; margin: 0 auto; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        #scroll-indicator { position: fixed; top: 75px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.7); color: white; padding: 6px 15px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; z-index: 1000; opacity: 0; transition: opacity 0.3s; pointer-events: none; backdrop-filter: blur(5px); }
-        #scroll-indicator.visible { opacity: 1; }
-        body.dark-mode #scroll-indicator { background: rgba(255,255,255,0.2); color: #fff; }
-        #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 0; background: linear-gradient(-45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb); background-size: 400% 400%; animation: gradientBG 10s ease infinite; }
-        @keyframes gradientBG { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
-        .login-card { background: var(--card-bg); padding: 40px 30px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center; width: 80%; max-width: 350px; }
-        .login-card h2 { margin-top: 0; font-size: 1.8rem; }
-        .login-card p { color: var(--text-muted); margin-bottom: 25px; }
-        .login-card input { padding: 15px; font-size: 1.2rem; border-radius: 12px; border: 2px solid var(--border-color); text-align: center; margin-bottom: 20px; width: 100%; box-sizing: border-box; background: var(--input-bg); color: var(--text-main); }
-        .login-card button { padding: 15px; width: 100%; font-size: 1.1rem; border-radius: 12px; border: none; background: linear-gradient(90deg, var(--lia-dark), var(--max-dark)); color: white; font-weight: bold; cursor: pointer; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-top: 10px;}
-        header h1 { margin: 0; font-size: 2.2rem; text-align: center; flex-grow: 1; background: linear-gradient(90deg, var(--lia-dark), var(--max-dark)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-        .header-title-small { font-size: 1.5rem; text-align: center; flex-grow: 1; color: var(--text-main); margin: 0;}
-        .icon-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-main); padding: 5px; }
-        .search-container { position: relative; margin-bottom: 25px; }
-        .search-input { width: 100%; padding: 15px 20px 15px 45px; border-radius: 20px; border: 1px solid var(--border-color); font-size: 1.05rem; box-sizing: border-box; background: var(--card-bg); color: var(--text-main); box-shadow: var(--shadow); font-family: inherit; }
-        .search-icon { position: absolute; left: 15px; top: 15px; font-size: 1.2rem; opacity: 0.5; }
-        #search-results { background: var(--card-bg); border-radius: 15px; margin-top: 10px; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .search-result-item { padding: 15px; border-bottom: 1px solid var(--border-color); cursor: pointer; }
-        .big-card { background: var(--card-bg); border-radius: 20px; padding: 30px 20px; margin-bottom: 20px; box-shadow: var(--shadow); text-align: center; cursor: pointer; border-bottom: 5px solid transparent; }
-        .big-card#card-timeline { border-bottom-color: var(--lia-dark); }
-        .big-card#card-quotes { border-bottom-color: var(--max-dark); }
-        .big-card h2 { margin: 0 0 10px 0; font-size: 1.6rem; }
-        .big-card p { color: var(--text-muted); margin: 0;}
-        #fab { position: fixed; bottom: 30px; right: 30px; width: 65px; height: 65px; border-radius: 50%; background: linear-gradient(135deg, var(--lia-dark), var(--max-dark)); color: white; font-size: 2.5rem; border: none; box-shadow: 0 8px 20px rgba(0,0,0,0.3); cursor: pointer; z-index: 1000; display: flex; justify-content: center; align-items: center; }
-        .timeline { position: relative; max-width: 100%; margin: 0 auto; padding-top: 10px; }
-        .timeline::after { content: ''; position: absolute; width: 4px; background-color: var(--timeline-line); top: 0; bottom: 0; left: 50%; margin-left: -2px; border-radius: 2px; }
-        .container-tl { padding: 10px 20px; position: relative; width: 50%; box-sizing: border-box; }
-        .container-tl.lia { left: 0; } .container-tl.max { left: 50%; }
-        .container-tl::after { content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%; background-color: var(--card-bg); border: 4px solid var(--timeline-line); top: 15px; z-index: 1; }
-        .lia::after { right: -12px; border-color: var(--lia-dark); } .max::after { left: -12px; border-color: var(--max-dark); }
-        .content-tl { padding: 15px; border-radius: 15px; position: relative; box-shadow: var(--shadow); background: var(--card-bg); }
-        .lia .content-tl { border-left: 5px solid var(--lia-dark); background-color: var(--lia-color); }
-        .max .content-tl { border-left: 5px solid var(--max-dark); background-color: var(--max-color); }
-        .date-badge { font-size: 0.85rem; font-weight: bold; margin-bottom: 8px; color: var(--text-muted); padding-right: 20px; }
-        .quotes-grid { display: flex; flex-direction: column; gap: 15px; }
-        .quote-card { padding: 20px; border-radius: 15px; position: relative; font-size: 1.15rem; font-style: italic; box-shadow: var(--shadow); line-height: 1.4; }
-        .quote-card.lia { background: var(--lia-gradient); color: #fff; }
-        .quote-card.max { background: var(--max-gradient); color: #2d3436; }
-        body.dark-mode .quote-card.max { color: #fff; }
-        .quote-author { font-size: 0.9rem; font-weight: bold; margin-top: 15px; text-align: right; font-style: normal; }
 
-        /* --- MENÚ DE ACCIONES (TRES PUNTOS) --- */
-        .card-menu-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: none;
-            border: none;
-            font-size: 1.3rem;
-            cursor: pointer;
-            color: inherit;
-            opacity: 0.65;
-            padding: 4px 8px;
-            line-height: 1;
-            border-radius: 8px;
-            z-index: 5;
+        .screen {
+            padding: 14px 16px;
+            max-width: 680px;
+            margin: 0 auto;
+            animation: fadeIn 0.3s ease;
         }
-        .card-menu-btn:active {
-            opacity: 1;
-            background: rgba(0,0,0,0.05);
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .card-dropdown {
-            position: absolute;
-            top: 36px;
-            right: 8px;
-            background: var(--card-bg);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-            display: none;
-            flex-direction: column;
-            min-width: 130px;
-            overflow: hidden;
-            z-index: 20;
-            font-style: normal;
-            font-size: 0.9rem;
+
+        /* --- Panel y Píldoras de Cristal (Glassmorphism de Color Total y Saturado) --- */
+        .glass-panel {
+            background: var(--card-glass);
+            backdrop-filter: blur(18px) saturate(180%);
+            -webkit-backdrop-filter: blur(18px) saturate(180%);
+            border: 1.5px solid var(--card-border);
+            border-radius: 24px;
+            box-shadow: var(--shadow-glass);
         }
-        .card-dropdown.active {
-            display: flex;
-        }
-        .card-dropdown button {
-            background: none;
-            border: none;
-            padding: 10px 14px;
-            text-align: left;
-            font-size: 0.9rem;
-            cursor: pointer;
-            color: var(--text-main);
-            display: flex;
+
+        /* Píldora de cristal de color COMPLETO */
+        .glass-pill {
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
-            border-bottom: 1px solid var(--border-color);
-            font-family: inherit;
-        }
-        .card-dropdown button:last-child {
-            border-bottom: none;
-        }
-        .card-dropdown button:active {
-            background: rgba(0,0,0,0.06);
-        }
-        body.dark-mode .card-dropdown button:active {
-            background: rgba(255,255,255,0.08);
-        }
-        .card-dropdown button.btn-delete-opt {
-            color: #ff4757;
+            gap: 6px;
+            padding: 7px 15px;
+            border-radius: 30px;
+            font-size: 0.84rem;
+            font-weight: 700;
+            backdrop-filter: blur(16px) saturate(190%);
+            -webkit-backdrop-filter: blur(16px) saturate(190%);
+            border: 1px solid transparent;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            user-select: none;
+            cursor: pointer;
         }
 
-        /* Toast para aviso de copiado */
-        #toast-notice {
+        .glass-pill.lia {
+            background: var(--lia-glass-bg);
+            color: var(--lia-text);
+            border-color: var(--lia-glass-border);
+            box-shadow: var(--lia-glass-glow);
+        }
+        .glass-pill.max {
+            background: var(--max-glass-bg);
+            color: var(--max-text);
+            border-color: var(--max-glass-border);
+            box-shadow: var(--max-glass-glow);
+        }
+        .glass-pill.moni {
+            background: var(--moni-glass-bg);
+            color: var(--moni-text);
+            border-color: var(--moni-glass-border);
+            box-shadow: var(--moni-glass-glow);
+        }
+        .glass-pill.xavi {
+            background: var(--xavi-glass-bg);
+            color: var(--xavi-text);
+            border-color: var(--xavi-glass-border);
+            box-shadow: var(--xavi-glass-glow);
+        }
+        .glass-pill.neutral {
+            background: rgba(148, 163, 184, 0.22);
+            color: var(--text-muted);
+            border-color: rgba(148, 163, 184, 0.45);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+        }
+
+        .glass-pill.active {
+            transform: scale(1.06);
+            filter: brightness(1.12);
+        }
+
+        /* Indicador de Fecha en Scroll */
+        #scroll-indicator {
             position: fixed;
-            bottom: 100px;
+            top: 18px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(15, 23, 42, 0.85);
             color: #fff;
-            padding: 10px 22px;
-            border-radius: 25px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            z-index: 3000;
+            padding: 7px 18px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            z-index: 1000;
             opacity: 0;
-            pointer-events: none;
             transition: opacity 0.25s ease;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+            pointer-events: none;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
         }
-        #toast-notice.visible {
-            opacity: 1;
+        #scroll-indicator.visible { opacity: 1; }
+
+        /* Pantalla Login */
+        #login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100dvh;
+            padding: 20px;
         }
-        body.dark-mode #toast-notice {
-            background: rgba(255, 255, 255, 0.92);
-            color: #121212;
+        .login-card {
+            padding: 38px 28px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+        }
+        .login-card h2 { margin: 0 0 8px 0; font-size: 1.7rem; font-weight: 800; }
+        .login-card p { color: var(--text-muted); margin: 0 0 24px 0; font-size: 0.95rem; }
+        .login-input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+            background: var(--input-bg);
+            color: var(--text-main);
+            font-size: 1.3rem;
+            text-align: center;
+            letter-spacing: 5px;
+            margin-bottom: 20px;
+            outline: none;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            border-radius: 16px;
+            border: none;
+            background: linear-gradient(135deg, #ff2d75, #0284c7);
+            color: white;
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(255, 45, 117, 0.35);
         }
 
-        @keyframes highlightPulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); box-shadow: 0 0 20px var(--max-dark); } 100% { transform: scale(1); } }
-        .highlight-item > .content-tl, .highlight-item.quote-card { animation: highlightPulse 2s ease; }
-        #add-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
-        .modal-content { background: var(--card-bg); padding: 25px; border-radius: 20px; width: 85%; max-width: 400px; }
-        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
-        .form-group label { margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
-        .form-group input, .form-group select, .form-group textarea { padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); font-size: 1rem; background: var(--input-bg); color: var(--text-main); }
-        .btn-row { display: flex; justify-content: space-between; margin-top: 25px; gap: 10px;}
-        .btn-row button { padding: 14px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; flex: 1;}
-        .btn-save { background: linear-gradient(90deg, var(--lia-dark), var(--max-dark)); color: white; }
-        .btn-cancel { background: var(--border-color); color: var(--text-main); }
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            padding-top: 4px;
+        }
+        .header-title-main {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 800;
+            text-align: center;
+            flex-grow: 1;
+            letter-spacing: -0.5px;
+        }
+        .header-title-sub {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin: 0;
+            text-align: center;
+            flex-grow: 1;
+        }
+        .icon-btn {
+            background: var(--card-glass);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(10px);
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            cursor: pointer;
+            color: var(--text-main);
+            box-shadow: var(--shadow-glass);
+            transition: transform 0.15s ease;
+        }
+        .icon-btn:active { transform: scale(0.92); }
+
+        /* --- Selector Principal: 🧸 Hijos vs ☕ Padres --- */
+        .world-toggle-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 18px;
+        }
+        .world-toggle {
+            display: flex;
+            background: var(--card-glass);
+            padding: 5px;
+            border-radius: 35px;
+            border: 1px solid var(--card-border);
+            box-shadow: var(--shadow-glass);
+            width: 100%;
+            max-width: 400px;
+            gap: 6px;
+        }
+        .world-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 28px;
+            border: none;
+            background: transparent;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .world-btn.active.kids {
+            background: linear-gradient(135deg, var(--lia-glass-bg), var(--max-glass-bg));
+            color: var(--text-main);
+            border: 1px solid var(--lia-glass-border);
+            box-shadow: 0 4px 16px rgba(255, 45, 117, 0.15);
+        }
+        .world-btn.active.parents {
+            background: linear-gradient(135deg, var(--moni-glass-bg), var(--xavi-glass-bg));
+            color: var(--text-main);
+            border: 1px solid var(--xavi-glass-border);
+            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2);
+        }
+
+        /* Indicador de Swipe para Móvil */
+        .swipe-hint {
+            text-align: center;
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            margin-top: -10px;
+            margin-bottom: 14px;
+            opacity: 0.7;
+            user-select: none;
+        }
+
+        /* Buscador */
+        .search-box {
+            position: relative;
+            margin-bottom: 18px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 13px 18px 13px 44px;
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+            background: var(--card-glass);
+            backdrop-filter: blur(12px);
+            color: var(--text-main);
+            font-size: 0.95rem;
+            box-shadow: var(--shadow-glass);
+            outline: none;
+        }
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Tarjetas de Navegación Home */
+        .big-action-card {
+            padding: 22px 18px;
+            border-radius: 24px;
+            margin-bottom: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: transform 0.2s ease;
+        }
+        .big-action-card:active { transform: scale(0.98); }
+        .big-action-icon {
+            font-size: 2.2rem;
+            width: 58px;
+            height: 58px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            backdrop-filter: blur(10px);
+        }
+        .big-action-info h2 { margin: 0 0 4px 0; font-size: 1.25rem; font-weight: 700; }
+        .big-action-info p { margin: 0; font-size: 0.88rem; color: var(--text-muted); }
+
+        /* --- Cabecera del Timeline Dividido (Lía izquierda / Max derecha) --- */
+        .tl-split-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 0 10px;
+        }
+        .tl-split-col-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 800;
+            font-size: 0.95rem;
+        }
+
+        /* --- Línea Temporal Central con 1 Persona a Cada Lado --- */
+        .timeline {
+            position: relative;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 10px 0 30px 0;
+        }
+        /* Línea central exacta */
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            background-color: var(--timeline-line);
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -2px;
+            border-radius: 2px;
+            z-index: 0;
+        }
+
+        .container-tl {
+            padding: 8px 10px;
+            position: relative;
+            width: 50%;
+            box-sizing: border-box;
+            z-index: 1;
+        }
+        /* Lado Izquierdo (Lía o Moni) */
+        .container-tl.side-left {
+            left: 0;
+            padding-right: 18px;
+        }
+        /* Lado Derecho (Max o Xavi) */
+        .container-tl.side-right {
+            left: 50%;
+            padding-left: 18px;
+        }
+
+        /* Puntos en la línea central */
+        .container-tl::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            top: 20px;
+            background: var(--bg-color);
+            border: 3px solid var(--timeline-line);
+            z-index: 2;
+        }
+        .side-left::after { right: -7px; }
+        .side-right::after { left: -7px; }
+
+        .container-tl.lia::after { border-color: var(--lia-color); background: var(--lia-color); }
+        .container-tl.max::after { border-color: var(--max-color); background: var(--max-color); }
+        .container-tl.moni::after { border-color: var(--moni-color); background: var(--moni-color); }
+        .container-tl.xavi::after { border-color: var(--xavi-color); background: var(--xavi-color); }
+
+        /* Contenido de la tarjeta de cristal en el timeline */
+        .content-tl {
+            padding: 14px 16px;
+            border-radius: 20px;
+            position: relative;
+            backdrop-filter: blur(18px) saturate(190%);
+            -webkit-backdrop-filter: blur(18px) saturate(190%);
+            border: 1px solid transparent;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+        .content-tl:active { transform: scale(0.98); }
+
+        /* Cristal de Color TOTAL en las tarjetas del timeline */
+        .container-tl.lia .content-tl {
+            background: var(--lia-glass-bg);
+            border-color: var(--lia-glass-border);
+            box-shadow: var(--lia-glass-glow);
+        }
+        .container-tl.max .content-tl {
+            background: var(--max-glass-bg);
+            border-color: var(--max-glass-border);
+            box-shadow: var(--max-glass-glow);
+        }
+        .container-tl.moni .content-tl {
+            background: var(--moni-glass-bg);
+            border-color: var(--moni-glass-border);
+            box-shadow: var(--moni-glass-glow);
+        }
+        .container-tl.xavi .content-tl {
+            background: var(--xavi-glass-bg);
+            border-color: var(--xavi-glass-border);
+            box-shadow: var(--xavi-glass-glow);
+        }
+
+        .date-badge {
+            font-size: 0.78rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .delete-btn-mini, .edit-btn-mini {
+            background: none;
+            border: none;
+            font-size: 0.85rem;
+            cursor: pointer;
+            opacity: 0.7;
+            padding: 2px 4px;
+            transition: opacity 0.2s;
+        }
+        .delete-btn-mini:hover, .edit-btn-mini:hover { opacity: 1; }
+
+        .tl-text-content {
+            font-size: 0.92rem;
+            line-height: 1.45;
+            color: var(--text-main);
+            font-weight: 500;
+            word-break: break-word;
+        }
+
+        /* --- Frases Célebres (Tarjetas de Cristal Total) --- */
+        .quotes-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .quote-card {
+            padding: 20px;
+            border-radius: 24px;
+            position: relative;
+            backdrop-filter: blur(18px) saturate(190%);
+            -webkit-backdrop-filter: blur(18px) saturate(190%);
+            border: 1px solid transparent;
+            font-size: 1.12rem;
+            font-style: italic;
+            line-height: 1.45;
+            font-weight: 500;
+        }
+        .quote-card.lia {
+            background: var(--lia-glass-bg);
+            border-color: var(--lia-glass-border);
+            box-shadow: var(--lia-glass-glow);
+        }
+        .quote-card.max {
+            background: var(--max-glass-bg);
+            border-color: var(--max-glass-border);
+            box-shadow: var(--max-glass-glow);
+        }
+        .quote-card.moni {
+            background: var(--moni-glass-bg);
+            border-color: var(--moni-glass-border);
+            box-shadow: var(--moni-glass-glow);
+        }
+        .quote-card.xavi {
+            background: var(--xavi-glass-bg);
+            border-color: var(--xavi-glass-border);
+            box-shadow: var(--xavi-glass-glow);
+        }
+
+        .quote-author {
+            font-size: 0.88rem;
+            font-weight: 800;
+            margin-top: 14px;
+            text-align: right;
+            font-style: normal;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Barra de Categorías */
+        .category-filter-bar {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 0 14px 0;
+            scrollbar-width: none;
+        }
+        .category-filter-bar::-webkit-scrollbar { display: none; }
+
+        /* FAB Button */
+        #fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 62px;
+            height: 62px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff2d75, #0284c7);
+            color: white;
+            font-size: 2.2rem;
+            border: none;
+            box-shadow: 0 10px 25px rgba(2, 132, 199, 0.4);
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #fab.parents-theme {
+            background: linear-gradient(135deg, #9333ea, #d97706);
+            box-shadow: 0 10px 25px rgba(217, 119, 6, 0.4);
+        }
+        #fab:active { transform: scale(0.9); }
+
+        /* Modal Crear / Editar */
+        #memory-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .modal-body {
+            width: 100%;
+            max-width: 440px;
+            padding: 26px 22px;
+            border-radius: 28px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-body h2 {
+            margin: 0 0 18px 0;
+            text-align: center;
+            font-size: 1.35rem;
+        }
+        .form-row {
+            margin-bottom: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-row label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--card-border);
+            background: var(--input-bg);
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+            line-height: 1.4;
+        }
+        .modal-btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 22px;
+        }
+        .btn-action {
+            flex: 1;
+            padding: 13px;
+            border-radius: 14px;
+            border: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+        .btn-action:active { transform: scale(0.97); }
+        .btn-confirm {
+            background: linear-gradient(135deg, #ff2d75, #0284c7);
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
+        }
+        .btn-confirm.parents-mode {
+            background: linear-gradient(135deg, #9333ea, #d97706);
+            box-shadow: 0 6px 18px rgba(217, 119, 6, 0.35);
+        }
+        .btn-cancel {
+            background: rgba(148, 163, 184, 0.2);
+            color: var(--text-main);
+        }
+
+        /* Resaltado de búsqueda */
+        @keyframes pulseHighlight {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); filter: brightness(1.2); }
+            100% { transform: scale(1); }
+        }
+        .highlight-item { animation: pulseHighlight 1.8s ease; }
     </style>
 </head>
 <body>
 
-    <div id="scroll-indicator">Oct 2025</div>
-    <div id="toast-notice">Copiado al portapapeles</div>
+    <div id="scroll-indicator">Octubre 2025</div>
 
-    <!-- 1. Pantalla de Login -->
+    <!-- 1. Pantalla de Acceso (PIN / Sesión) -->
     <div id="login-screen">
-        <div class="login-card">
-            <h2>¡Hola Familia! 👋</h2>
-            <p>Introduce la contraseña para entrar al diario.</p>
-            <input type="password" id="pass-input" placeholder="Contraseña">
-            <button id="login-btn" onclick="checkLogin()">Acceder</button>
+        <div class="glass-panel login-card">
+            <div style="margin-bottom: 14px; display: inline-flex; justify-content: center; align-items: center; width: 72px; height: 72px; border-radius: 22px; background: linear-gradient(135deg, var(--lia-glass-bg), var(--max-glass-bg)); border: 1.5px solid rgba(255, 255, 255, 0.4); box-shadow: var(--shadow-glass);">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color: var(--lia-color);">
+                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                    <path d="M6 6h10"></path>
+                    <path d="M6 10h7"></path>
+                </svg>
+            </div>
+            <h2>MiniBitácora Familiar</h2>
+            <p>Introduce la clave para acceder al diario</p>
+            <input type="password" id="pass-input" class="login-input" placeholder="••••" maxlength="8">
+            <button class="login-btn" onclick="attemptLogin()">Entrar</button>
         </div>
     </div>
 
-    <!-- 2. Pantalla Principal -->
+    <!-- 2. Pantalla Principal (Home) -->
     <div id="home-screen" class="screen hidden">
         <header>
-            <div style="width: 40px;"></div>
-            <h1>MiniBitácora</h1>
-            <button class="icon-btn" style="width: 40px;" onclick="toggleDarkMode()" title="Cambiar tema">🌓</button>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button class="icon-btn" onclick="logout()" title="Cerrar sesión">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                </button>
+                <div id="server-status-dot" style="width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981; transition: background 0.3s;" title="Conectado a Servidor Privado (Tailscale)"></div>
+            </div>
+            <h1 class="header-title-main">MiniBitácora</h1>
+            <button class="icon-btn" id="theme-btn-home" onclick="toggleDarkMode()" title="Cambiar tema">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
         </header>
-        <div class="search-container">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="search-input" class="search-input" placeholder="Buscar palabras, fechas..." oninput="doSearch()">
-            <div id="search-results"></div>
+
+        <!-- Selector Principal: Hijos vs Padres -->
+        <div class="world-toggle-container">
+            <div class="world-toggle">
+                <button class="world-btn active kids" id="home-btn-kids" onclick="setWorld('kids')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+                    <span>Hijos (Lía & Max)</span>
+                </button>
+                <button class="world-btn" id="home-btn-parents" onclick="setWorld('parents')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>Padres (Moni & Xavi)</span>
+                </button>
+            </div>
         </div>
-        <div class="big-card" id="card-timeline" onclick="showScreen('timeline-screen')">
-            <h2 style="font-size: 2.5rem; margin-bottom: 5px;">📅</h2>
-            <h2>Cronología</h2>
-            <p>Sus primeros pasos, dientes y logros</p>
+        <div class="swipe-hint">👉 Desliza con el dedo para cambiar entre Hijos y Padres</div>
+
+        <!-- Barra de búsqueda rápida -->
+        <div class="search-box">
+            <span class="search-icon">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </span>
+            <input type="text" id="search-input" class="search-input" placeholder="Buscar palabras, fechas, anécdotas..." oninput="handleSearch()">
         </div>
-        <div class="big-card" id="card-quotes" onclick="showScreen('quotes-screen')">
-            <h2 style="font-size: 2.5rem; margin-bottom: 5px;">💬</h2>
-            <h2>Frases Célebres</h2>
-            <p>Ocurrencias que no queremos olvidar</p>
+        <div id="search-results-box" style="margin-bottom: 16px;"></div>
+
+        <!-- Tarjetas de Navegación -->
+        <div class="glass-panel big-action-card" onclick="openScreen('timeline-screen')">
+            <div class="big-action-icon" id="home-icon-tl" style="background: var(--lia-glass-bg); color: var(--lia-color);">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </div>
+            <div class="big-action-info">
+                <h2 id="home-tl-title">Cronología Paralela</h2>
+                <p id="home-tl-desc">Lía (izq.) y Max (der.) cara a cara en el tiempo</p>
+            </div>
+        </div>
+
+        <div class="glass-panel big-action-card" onclick="openScreen('quotes-screen')">
+            <div class="big-action-icon" id="home-icon-qt" style="background: var(--max-glass-bg); color: var(--max-color);">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            </div>
+            <div class="big-action-info">
+                <h2 id="home-qt-title">Frases Célebres</h2>
+                <p id="home-qt-desc">Ocurrencias que no queremos olvidar</p>
+            </div>
         </div>
     </div>
 
-    <!-- 3. Pantalla Cronología -->
+    <!-- 3. Pantalla Cronología (Timeline Central 50/50) -->
     <div id="timeline-screen" class="screen hidden">
         <header>
-            <button class="icon-btn" style="width: 40px; text-align: left;" onclick="showScreen('home-screen')">🔙</button>
-            <h2 class="header-title-small">Cronología</h2>
-            <button class="icon-btn" style="width: 40px; text-align: right;" onclick="toggleDarkMode()" title="Cambiar tema">🌓</button>
+            <button class="icon-btn" onclick="openScreen('home-screen')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            </button>
+            <h2 class="header-title-sub" id="tl-screen-title">Cronología</h2>
+            <button class="icon-btn" onclick="toggleDarkMode()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
         </header>
+
+        <!-- Selector de Mundo dentro de Cronología -->
+        <div class="world-toggle-container">
+            <div class="world-toggle">
+                <button class="world-btn active kids" id="tl-btn-kids" onclick="setWorld('kids')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+                    <span>Hijos</span>
+                </button>
+                <button class="world-btn" id="tl-btn-parents" onclick="setWorld('parents')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>Padres</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Filtro de Categorías (Físico, Logros, etc.) -->
+        <div class="category-filter-bar" id="tl-category-filter">
+            <span class="glass-pill neutral active" onclick="filterCategory('all', this)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>
+                <span>Todo</span>
+            </span>
+            <span class="glass-pill neutral" onclick="filterCategory('fisico', this)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                <span>Físico</span>
+            </span>
+            <span class="glass-pill neutral" onclick="filterCategory('logro', this)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H8v4h8v-4h-1c-.55 0-1-.45-1-1v-2.34"></path><path d="M18 4H6v7a6 6 0 0 0 12 0V4z"></path></svg>
+                <span>Logros</span>
+            </span>
+            <span class="glass-pill neutral" onclick="filterCategory('rutina', this)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                <span>Día a Día</span>
+            </span>
+            <span class="glass-pill neutral" onclick="filterCategory('especial', this)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                <span>Especial</span>
+            </span>
+        </div>
+
+        <!-- Cabecera de Columnas para comparar -->
+        <div class="tl-split-header" id="tl-column-headers">
+            <!-- Rellenado dinámicamente: Lía vs Max o Moni vs Xavi -->
+        </div>
+
+        <!-- Línea Temporal Central con 1 niño / padre a cada lado -->
         <div class="timeline" id="timeline-container"></div>
     </div>
 
-    <!-- 4. Pantalla Frases -->
+    <!-- 4. Pantalla Frases Célebres -->
     <div id="quotes-screen" class="screen hidden">
         <header>
-            <button class="icon-btn" style="width: 40px; text-align: left;" onclick="showScreen('home-screen')">🔙</button>
-            <h2 class="header-title-small">Frases Célebres</h2>
-            <button class="icon-btn" style="width: 40px; text-align: right;" onclick="toggleDarkMode()" title="Cambiar tema">🌓</button>
+            <button class="icon-btn" onclick="openScreen('home-screen')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            </button>
+            <h2 class="header-title-sub" id="qt-screen-title">Frases Célebres</h2>
+            <button class="icon-btn" onclick="toggleDarkMode()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
         </header>
+
+        <!-- Selector de Mundo dentro de Frases -->
+        <div class="world-toggle-container">
+            <div class="world-toggle">
+                <button class="world-btn active kids" id="qt-btn-kids" onclick="setWorld('kids')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+                    <span>Hijos</span>
+                </button>
+                <button class="world-btn" id="qt-btn-parents" onclick="setWorld('parents')">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>Padres</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Contenedor de Frases -->
         <div class="quotes-grid" id="quotes-container"></div>
     </div>
 
-    <button id="fab" class="hidden" onclick="openModal()">+</button>
+    <!-- Botón Flotante Añadir (FAB) -->
+    <button id="fab" class="hidden" onclick="openCreateModal()">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    </button>
 
-    <!-- Modal Añadir / Editar -->
-    <div id="add-modal" class="hidden">
-        <div class="modal-content">
-            <h2 id="modal-title" style="margin-top:0; text-align: center;">Añadir Recuerdo</h2>
+    <!-- Modal Crear / Editar Recuerdo -->
+    <div id="memory-modal" class="hidden">
+        <div class="glass-panel modal-body">
+            <h2 id="modal-title">Añadir Recuerdo</h2>
             <input type="hidden" id="edit-entry-id" value="">
-            <div class="form-group"><label>¿Qué vas a guardar?</label><select id="input-type"><option value="hito">📅 Un Hito</option><option value="frase">💬 Una Frase</option></select></div>
-            <div class="form-group"><label>¿Quién es el protagonista?</label><select id="input-child"><option value="lia">👧 Lía</option><option value="max">👦 Max</option></select></div>
-            <div class="form-group"><label>Escribe aquí...</label><textarea id="input-text" rows="3"></textarea></div>
-            <div class="form-group">
-                <label>Mes y Año (Orden)</label>
-                <input type="text" id="input-sort-date" placeholder="MM/AAAA (ej: 03/2025)" maxlength="7" inputmode="numeric" oninput="formatMonthYear(this)" required>
+
+            <div class="form-row">
+                <label>¿Qué vas a guardar?</label>
+                <select id="input-type" class="form-select" onchange="handleModalTypeChange()">
+                    <option value="hito">Un Hito / Momento</option>
+                    <option value="frase">Una Frase Célebre</option>
+                </select>
             </div>
-            <div class="form-group"><label>Texto de la fecha (Opcional)</label><input type="text" id="input-display-date" placeholder="Ej: 'A los 7 meses'"></div>
-            <div class="btn-row">
-                <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
-                <button class="btn-save" id="save-btn" onclick="saveData()">Guardar</button>
+
+            <div class="form-row">
+                <label>Protagonista</label>
+                <select id="input-person" class="form-select">
+                    <!-- Opciones cargadas dinámicamente según el mundo activo -->
+                </select>
+            </div>
+
+            <div class="form-row" id="row-category">
+                <label>Categoría</label>
+                <select id="input-category" class="form-select">
+                    <option value="fisico">Físico (altura, peso, salud, cambios)</option>
+                    <option value="logro">Logros y Primeras Veces</option>
+                    <option value="rutina">Día a Día / Rutinas / Cole / Trabajo</option>
+                    <option value="especial">Momentos Especiales / Celebraciones</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <label id="label-text">Detalles del Recuerdo</label>
+                <textarea id="input-text" class="form-textarea" placeholder="Escribe aquí lo sucedido o la frase exacta..."></textarea>
+            </div>
+
+            <div class="form-row">
+                <label>Fecha</label>
+                <input type="date" id="input-date" class="form-input" required>
+            </div>
+
+            <div class="form-row">
+                <label>Nota sobre la fecha (Opcional)</label>
+                <input type="text" id="input-display-date" class="form-input" placeholder="Ej: 'A los 2 años', 'Revisión pediatra', etc.">
+            </div>
+
+            <div class="modal-btn-row">
+                <button class="btn-action btn-cancel" onclick="closeModal()">Cancelar</button>
+                <button class="btn-action btn-confirm" id="btn-save" onclick="saveEntry()">Guardar</button>
             </div>
         </div>
     </div>
 
-    <!-- --- JAVASCRIPT --- -->
+    <!-- Script de la Aplicación -->
     <script>
-        const SUPABASE_URL = 'https://dwltmdxtnzdgbfruxxbd.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_9KbD50_bHQ6xYVHV-D_SJw_JdLu9IEP';
-        
-        let supabaseClient = null;
-        let db = [];
+        // --- 1. Definición de Iconos Vectoriales SVG Modernos ---
+        const ICONS = {
+            lock: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`,
+            sun: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`,
+            moon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`,
+            calendar: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`,
+            quote: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`,
+            edit: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
+            trash: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
+            share: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>`,
+            
+            // Protagonistas
+            lia: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M5.5 21v-2a6.5 6.5 0 0 1 13 0v2"></path><circle cx="12" cy="13" r="1" fill="currentColor"></circle></svg>`,
+            max: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M6 21v-2a6 6 0 0 1 12 0v2"></path><path d="M12 3v-2"></path></svg>`,
+            moni: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M4 21v-2a8 8 0 0 1 16 0v2"></path><path d="M8 11c0 2 2 3 4 3s4-1 4-3"></path></svg>`,
+            xavi: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M4 21v-2a8 8 0 0 1 16 0v2"></path><line x1="12" y1="13" x2="12" y2="15.5"></line></svg>`,
 
-        try {
-            if (window.supabase && window.supabase.createClient) {
-                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-                    global: {
-                        headers: {
-                            apikey: SUPABASE_ANON_KEY
-                        }
-                    }
-                });
+            // Categorías
+            fisico: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>`,
+            logro: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H8v4h8v-4h-1c-.55 0-1-.45-1-1v-2.34"></path><path d="M18 4H6v7a6 6 0 0 0 12 0V4z"></path></svg>`,
+            rutina: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>`,
+            especial: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`
+        };
+
+        // --- Protagonistas y Mundos ---
+        const WORLDS = {
+            kids: {
+                name: 'Hijos',
+                left: { id: 'lia', name: 'Lía', icon: ICONS.lia, class: 'lia', color: 'var(--lia-color)' },
+                right: { id: 'max', name: 'Max', icon: ICONS.max, class: 'max', color: 'var(--max-color)' }
+            },
+            parents: {
+                name: 'Padres',
+                left: { id: 'moni', name: 'Moni', icon: ICONS.moni, class: 'moni', color: 'var(--moni-color)' },
+                right: { id: 'xavi', name: 'Xavi', icon: ICONS.xavi, class: 'xavi', color: 'var(--xavi-color)' }
             }
-        } catch (e) {
-            console.error('Error al inicializar cliente Supabase:', e);
+        };
+
+        const CATEGORIES = {
+            fisico: { label: 'Físico', icon: ICONS.fisico },
+            logro: { label: 'Logro', icon: ICONS.logro },
+            rutina: { label: 'Día a Día', icon: ICONS.rutina },
+            especial: { label: 'Especial', icon: ICONS.especial },
+            frase: { label: 'Frase', icon: ICONS.quote }
+        };
+
+        // Estado Global
+        let currentWorld = 'kids'; // 'kids' | 'parents'
+        let currentCategoryFilter = 'all';
+        let memories = [];
+
+        // Clave de acceso familiar y URL del Servidor Privado PocketBase (Tailscale)
+        const FAMILY_PIN = '5588';
+        const PB_BASE_URL = 'http://100.105.167.20:8090';
+        let isOnlineWithServer = false;
+
+        // --- 2. Inicialización y Modo Oscuro ---
+        function initTheme() {
+            const savedTheme = localStorage.getItem('kidsAppTheme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+            if (isDark) document.documentElement.classList.add('dark-mode');
+            updateMetaTheme(isDark);
         }
 
-        // Modo Oscuro
-        function updateThemeMeta(isDark) {
-            const color = isDark ? '#121212' : '#f4f7f6';
-            const metaTheme = document.getElementById('theme-color-meta');
-            if (metaTheme) metaTheme.setAttribute('content', color);
-            document.documentElement.style.backgroundColor = color;
-            document.body.style.backgroundColor = color;
+        function updateMetaTheme(isDark) {
+            const meta = document.getElementById('theme-color-meta');
+            if (meta) meta.setAttribute('content', isDark ? '#0b0f19' : '#f6f8fb');
+
+            // Actualizar botones de tema dinámicamente con SVG de sol o luna
+            document.querySelectorAll('.icon-btn[onclick="toggleDarkMode()"]').forEach(btn => {
+                btn.innerHTML = isDark ? ICONS.sun : ICONS.moon;
+                btn.title = isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
+            });
         }
 
         function toggleDarkMode() {
             document.documentElement.classList.toggle('dark-mode');
             const isDark = document.documentElement.classList.contains('dark-mode');
             localStorage.setItem('kidsAppTheme', isDark ? 'dark' : 'light');
-            updateThemeMeta(isDark);
+            updateMetaTheme(isDark);
         }
 
-        const isDarkOnInit = localStorage.getItem('kidsAppTheme') === 'dark' || (!localStorage.getItem('kidsAppTheme') && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-        if (isDarkOnInit) {
-            document.documentElement.classList.add('dark-mode');
-        }
-        updateThemeMeta(isDarkOnInit);
-
-        // Login
-        document.getElementById('pass-input').addEventListener('keypress', function (e) { 
-            if (e.key === 'Enter') checkLogin(); 
+        // --- 3. Autenticación y Recordar Sesión ---
+        document.getElementById('pass-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') attemptLogin();
         });
 
-        async function checkLogin() {
-            const pass = document.getElementById('pass-input').value;
-            if (pass !== '5588') {
-                alert('Contraseña incorrecta.');
-                return;
+        function checkExistingSession() {
+            const sessionActive = localStorage.getItem('family_session_active');
+            if (sessionActive === 'true') {
+                grantAccess();
             }
+        }
 
+        function attemptLogin() {
+            const val = document.getElementById('pass-input').value.trim();
+            if (val === FAMILY_PIN) {
+                localStorage.setItem('family_session_active', 'true');
+                grantAccess();
+            } else {
+                alert('Contraseña incorrecta.');
+                document.getElementById('pass-input').value = '';
+            }
+        }
+
+        function grantAccess() {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('home-screen').classList.remove('hidden');
             document.getElementById('fab').classList.remove('hidden');
-
-            await loadMemoriesFromCloud();
+            loadData();
         }
 
-        async function loadMemoriesFromCloud() {
-            if (!supabaseClient) {
-                console.warn('Supabase no disponible, funcionando en local.');
-                return;
+        function logout() {
+            if (!confirm('¿Deseas cerrar la sesión en este dispositivo?')) return;
+            localStorage.removeItem('family_session_active');
+            location.reload();
+        }
+
+        // --- 4. Sincronización con Servidor PocketBase + Caché Offline ---
+        function updateSyncStatus(connected) {
+            isOnlineWithServer = connected;
+            const indicator = document.getElementById('server-status-dot');
+            if (indicator) {
+                indicator.style.background = connected ? '#10b981' : '#f59e0b';
+                indicator.title = connected ? 'Conectado a Servidor Privado (Tailscale)' : 'Modo Caché Offline (Sin conexión al servidor)';
             }
+        }
 
-            try {
-                const { data, error } = await supabaseClient
-                    .from('memories')
-                    .select('*');
-
-                if (error) {
-                    alert('Aviso de base de datos: ' + (error.message || JSON.stringify(error)));
-                    console.error('Error al leer Supabase:', error);
-                } else {
-                    db = data || [];
-                    renderViews();
+        async function loadData() {
+            // 1. Carga inmediata de caché local para velocidad instantánea
+            const raw = localStorage.getItem('minibitacora_memories_v3');
+            if (raw) {
+                try {
+                    memories = JSON.parse(raw);
+                    renderAll();
+                } catch(e) {
+                    console.error('Error parseando caché local:', e);
                 }
-            } catch (err) {
-                console.error('Error de red al consultar Supabase:', err);
+            }
+
+            // 2. Sincronización en vivo con el servidor PocketBase
+            await syncWithServer();
+        }
+
+        async function syncWithServer() {
+            try {
+                const res = await fetch(`${PB_BASE_URL}/api/collections/memories/records?perPage=500&sort=-date`, {
+                    headers: { 'Accept': 'application/json' }
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && Array.isArray(data.items)) {
+                        memories = data.items.map(it => ({
+                            id: it.id,
+                            type: it.type || 'hito',
+                            person: it.person || 'lia',
+                            category: it.category || 'logro',
+                            text: it.text || '',
+                            date: it.date || '',
+                            display_date: it.display_date || ''
+                        }));
+                        persistLocal();
+                        renderAll();
+                        updateSyncStatus(true);
+                        return;
+                    }
+                }
+                updateSyncStatus(false);
+            } catch(err) {
+                console.warn('PocketBase no accesible en este momento, funcionando en caché local:', err);
+                updateSyncStatus(false);
             }
         }
 
-        // Navegación
-        function showScreen(screenId) {
-            closeAllDropdowns();
+        function persistLocal() {
+            localStorage.setItem('minibitacora_memories_v3', JSON.stringify(memories));
+        }
+
+        // --- 5. Navegación y Pantallas ---
+        function openScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
             document.getElementById(screenId).classList.remove('hidden');
-            if (screenId !== 'home-screen') {
-                document.getElementById('search-input').value = '';
-                document.getElementById('search-results').innerHTML = '';
-            }
-            renderViews();
             window.scrollTo(0, 0);
+            renderAll();
         }
 
-        // Formateo de fecha MM/AAAA en el input
-        function formatMonthYear(input) {
-            let val = input.value.replace(/\D/g, '');
-            if (val.length > 2) {
-                input.value = val.substring(0, 2) + '/' + val.substring(2, 6);
+        // --- 6. Cambio de Mundo: Hijos vs Padres ---
+        function setWorld(worldKey) {
+            currentWorld = worldKey;
+
+            // Actualizar botones de toggle en todas las vistas
+            ['home-btn-', 'tl-btn-', 'qt-btn-'].forEach(prefix => {
+                const kBtn = document.getElementById(prefix + 'kids');
+                const pBtn = document.getElementById(prefix + 'parents');
+                if (kBtn && pBtn) {
+                    if (worldKey === 'kids') {
+                        kBtn.classList.add('active', 'kids');
+                        pBtn.classList.remove('active', 'parents');
+                    } else {
+                        pBtn.classList.add('active', 'parents');
+                        kBtn.classList.remove('active', 'kids');
+                    }
+                }
+            });
+
+            // Ajustar colores del FAB
+            const fab = document.getElementById('fab');
+            const saveBtn = document.getElementById('btn-save');
+            if (worldKey === 'parents') {
+                fab.classList.add('parents-theme');
+                saveBtn.classList.add('parents-mode');
             } else {
-                input.value = val;
+                fab.classList.remove('parents-theme');
+                saveBtn.classList.remove('parents-mode');
+            }
+
+            // Textos descriptivos en el Home
+            const tlTitle = document.getElementById('home-tl-title');
+            const tlDesc = document.getElementById('home-tl-desc');
+            const qtTitle = document.getElementById('home-qt-title');
+            const qtDesc = document.getElementById('home-qt-desc');
+            const tlIcon = document.getElementById('home-icon-tl');
+            const qtIcon = document.getElementById('home-icon-qt');
+
+            if (worldKey === 'kids') {
+                tlTitle.innerText = 'Cronología Infantil';
+                tlDesc.innerText = 'Lía (izq.) y Max (der.) cara a cara en el tiempo';
+                qtTitle.innerText = 'Frases de Lía y Max';
+                qtDesc.innerText = 'Ocurrencias y anécdotas inolvidables';
+                tlIcon.style.background = 'var(--lia-glass-bg)';
+                tlIcon.style.color = 'var(--lia-color)';
+                qtIcon.style.background = 'var(--max-glass-bg)';
+                qtIcon.style.color = 'var(--max-color)';
+            } else {
+                tlTitle.innerText = 'Cronología de Padres';
+                tlDesc.innerText = 'Moni (izq.) y Xavi (der.) en paralelo';
+                qtTitle.innerText = 'Frases de Moni y Xavi';
+                qtDesc.innerText = 'Anécdotas, citas y momentos de los padres';
+                tlIcon.style.background = 'var(--moni-glass-bg)';
+                tlIcon.style.color = 'var(--moni-color)';
+                qtIcon.style.background = 'var(--xavi-glass-bg)';
+                qtIcon.style.color = 'var(--xavi-color)';
+            }
+
+            renderAll();
+        }
+
+        // --- Gesto Swipe Horizontal para Móvil ---
+        let touchStartX = 0;
+        let touchStartY = 0;
+        window.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        window.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].screenX;
+            const touchEndY = e.changedTouches[0].screenY;
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+
+            // Si es un desplazamiento horizontal claro (más de 60px y poco vertical)
+            if (Math.abs(diffX) > 65 && Math.abs(diffY) < 45) {
+                if (diffX < 0 && currentWorld === 'kids') {
+                    // Deslizar hacia la izquierda -> ir a Padres
+                    setWorld('parents');
+                } else if (diffX > 0 && currentWorld === 'parents') {
+                    // Deslizar hacia la derecha -> ir a Hijos
+                    setWorld('kids');
+                }
+            }
+        }, { passive: true });
+
+        // --- 7. Filtro de Categorías ---
+        function filterCategory(catKey, pillElem) {
+            currentCategoryFilter = catKey;
+            document.querySelectorAll('#tl-category-filter .glass-pill').forEach(p => p.classList.remove('active'));
+            if (pillElem) pillElem.classList.add('active');
+            renderTimeline();
+        }
+
+        // --- 8. Modales de Creación y Edición ---
+        function populatePersonSelect(selectedPerson = null) {
+            const select = document.getElementById('input-person');
+            const world = WORLDS[currentWorld];
+
+            select.innerHTML = `
+                <option value="${world.left.id}">${world.left.name}</option>
+                <option value="${world.right.id}">${world.right.name}</option>
+            `;
+
+            if (selectedPerson) {
+                select.value = selectedPerson;
             }
         }
 
-        // Convertir YYYY-MM a MM/YYYY para mostrar en el formulario
-        function isoToMmYyyy(iso) {
-            if (!iso || !iso.includes('-')) return '';
-            const [y, m] = iso.split('-');
-            return `${m}/${y}`;
+        function handleModalTypeChange() {
+            const type = document.getElementById('input-type').value;
+            const rowCat = document.getElementById('row-category');
+            const labelText = document.getElementById('label-text');
+            if (type === 'frase') {
+                rowCat.classList.add('hidden');
+                labelText.innerText = '¿Qué frase célebre u ocurrencia dijo?';
+            } else {
+                rowCat.classList.remove('hidden');
+                labelText.innerText = 'Detalles del Hito';
+            }
         }
 
-        // Modal
-        function openModal(editItem = null) {
-            closeAllDropdowns();
-            const modalTitle = document.getElementById('modal-title');
-            const editIdInput = document.getElementById('edit-entry-id');
+        function openCreateModal() {
+            document.getElementById('modal-title').innerText = 'Añadir Recuerdo';
+            document.getElementById('edit-entry-id').value = '';
+            document.getElementById('input-type').value = 'hito';
+            
+            populatePersonSelect();
 
-            if (editItem) {
-                modalTitle.innerText = 'Modificar Recuerdo';
-                editIdInput.value = editItem.id;
-                document.getElementById('input-type').value = editItem.type;
-                document.getElementById('input-child').value = editItem.child;
-                document.getElementById('input-text').value = editItem.text;
-                document.getElementById('input-sort-date').value = isoToMmYyyy(editItem.sort_date);
-                document.getElementById('input-display-date').value = editItem.display_date || '';
-            } else {
-                modalTitle.innerText = 'Añadir Recuerdo';
-                editIdInput.value = '';
-                const today = new Date();
-                const mm = String(today.getMonth() + 1).padStart(2, '0');
-                const yyyy = today.getFullYear();
-                document.getElementById('input-sort-date').value = `${mm}/${yyyy}`;
-                document.getElementById('input-text').value = '';
-                document.getElementById('input-display-date').value = '';
+            document.getElementById('input-category').value = 'logro';
+            document.getElementById('input-text').value = '';
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('input-date').value = today;
+            document.getElementById('input-display-date').value = '';
+
+            handleModalTypeChange();
+            document.getElementById('memory-modal').classList.remove('hidden');
+        }
+
+        function openEditModal(id) {
+            const item = memories.find(m => m.id === id);
+            if (!item) return;
+
+            document.getElementById('modal-title').innerText = 'Editar Recuerdo';
+            document.getElementById('edit-entry-id').value = item.id;
+            document.getElementById('input-type').value = item.type;
+            
+            // Si el ítem pertenece al otro mundo, cambiamos temporalmente para que coincida
+            if ((item.person === 'moni' || item.person === 'xavi') && currentWorld === 'kids') {
+                setWorld('parents');
+            } else if ((item.person === 'lia' || item.person === 'max') && currentWorld === 'parents') {
+                setWorld('kids');
             }
+            populatePersonSelect(item.person);
 
-            document.getElementById('add-modal').classList.remove('hidden');
+            document.getElementById('input-category').value = item.category || 'logro';
+            document.getElementById('input-text').value = item.text;
+            document.getElementById('input-date').value = item.date;
+            document.getElementById('input-display-date').value = item.display_date || '';
+
+            handleModalTypeChange();
+            document.getElementById('memory-modal').classList.remove('hidden');
         }
 
         function closeModal() {
-            document.getElementById('add-modal').classList.add('hidden');
-            document.getElementById('edit-entry-id').value = '';
-            document.getElementById('input-text').value = '';
-            document.getElementById('input-display-date').value = '';
+            document.getElementById('memory-modal').classList.add('hidden');
         }
 
-        // Guardar Datos (Crear o Actualizar)
-        async function saveData() {
+        async function saveEntry() {
             const editId = document.getElementById('edit-entry-id').value;
             const type = document.getElementById('input-type').value;
-            const child = document.getElementById('input-child').value;
+            const person = document.getElementById('input-person').value;
+            const category = type === 'frase' ? 'frase' : document.getElementById('input-category').value;
             const text = document.getElementById('input-text').value.trim();
-            const rawDate = document.getElementById('input-sort-date').value.trim();
+            const date = document.getElementById('input-date').value;
             let display_date = document.getElementById('input-display-date').value.trim();
 
-            if (!text || !rawDate) { 
-                alert('Rellena al menos el texto y el Mes/Año.'); 
-                return; 
-            }
-
-            // Validar y convertir MM/AAAA a YYYY-MM
-            let sort_date = '';
-            if (rawDate.includes('/')) {
-                const parts = rawDate.split('/');
-                const m = parseInt(parts[0], 10);
-                const y = parseInt(parts[1], 10);
-                if (m >= 1 && m <= 12 && parts[1].length === 4 && y >= 1900) {
-                    sort_date = `${parts[1]}-${String(m).padStart(2, '0')}`;
-                }
-            } else if (rawDate.includes('-') && rawDate.length === 7) {
-                sort_date = rawDate;
-            }
-
-            if (!sort_date) {
-                alert('El formato de fecha debe ser MM/AAAA (por ejemplo: 03/2025).');
+            if (!text || !date) {
+                alert('Por favor escribe el texto y selecciona una fecha.');
                 return;
             }
 
-            if (!display_date) display_date = rawDate;
+            if (!display_date) {
+                const parts = date.split('-');
+                if (parts.length === 3) {
+                    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                    display_date = `${parseInt(parts[2])} ${months[parseInt(parts[1])-1]} ${parts[0]}`;
+                } else {
+                    display_date = date;
+                }
+            }
 
-            const saveBtn = document.getElementById('save-btn');
+            const saveBtn = document.getElementById('btn-save');
             saveBtn.innerText = 'Guardando...';
             saveBtn.disabled = true;
 
-            const payload = { type, child, text, sort_date, display_date };
+            const payload = { type, person, category, text, date, display_date };
 
-            // Modo sin cliente Supabase (local)
-            if (!supabaseClient) {
-                if (editId) {
-                    const idx = db.findIndex(item => String(item.id) === String(editId));
-                    if (idx !== -1) db[idx] = { ...db[idx], ...payload };
-                } else {
-                    payload.id = Date.now();
-                    db.push(payload);
-                }
-                closeModal();
-                renderViews();
-                saveBtn.innerText = 'Guardar';
-                saveBtn.disabled = false;
-                return;
-            }
-
-            // Modo con Supabase
             try {
                 if (editId) {
-                    const { data, error } = await supabaseClient
-                        .from('memories')
-                        .update(payload)
-                        .eq('id', editId)
-                        .select();
-
-                    if (error) {
-                        alert('Error al modificar: ' + error.message);
-                    } else if (data && data.length > 0) {
-                        const idx = db.findIndex(item => String(item.id) === String(editId));
-                        if (idx !== -1) db[idx] = data[0];
-                        closeModal();
-                        renderViews();
+                    // Actualizar en PocketBase si es un id de servidor
+                    if (typeof editId === 'string' && editId.length > 5) {
+                        await fetch(`${PB_BASE_URL}/api/collections/memories/records/${editId}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                    }
+                    const idx = memories.findIndex(m => m.id == editId);
+                    if (idx !== -1) {
+                        memories[idx] = { ...memories[idx], ...payload };
                     }
                 } else {
-                    const { data, error } = await supabaseClient
-                        .from('memories')
-                        .insert([payload])
-                        .select();
-
-                    if (error) {
-                        alert('Error al guardar: ' + error.message);
-                    } else if (data && data.length > 0) {
-                        db.push(data[0]);
-                        closeModal();
-                        renderViews();
+                    // Crear nuevo en PocketBase
+                    let newId = Date.now();
+                    try {
+                        const res = await fetch(`${PB_BASE_URL}/api/collections/memories/records`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (res.ok) {
+                            const created = await res.json();
+                            if (created && created.id) newId = created.id;
+                        }
+                    } catch(netErr) {
+                        console.warn('Guardado en local por falta de red:', netErr);
                     }
+
+                    memories.unshift({ id: newId, ...payload });
                 }
-            } catch (err) {
-                alert('Error al conectar con la base de datos: ' + err.message);
+
+                persistLocal();
+                closeModal();
+                renderAll();
+            } catch(err) {
+                alert('Aviso al guardar: ' + err.message);
                 console.error(err);
             } finally {
                 saveBtn.innerText = 'Guardar';
@@ -518,212 +1375,246 @@
             }
         }
 
-        // Borrar Datos
         async function deleteEntry(id, event) {
             if (event) event.stopPropagation();
-            closeAllDropdowns();
-            if (!confirm('¿Seguro que quieres borrar este recuerdo?')) return;
-
-            if (supabaseClient) {
-                try {
-                    const { error } = await supabaseClient
-                        .from('memories')
-                        .delete()
-                        .eq('id', id);
-
-                    if (error) {
-                        alert('Error al borrar: ' + error.message);
-                        return;
-                    }
-                } catch (err) {
-                    alert('Error al borrar: ' + err.message);
-                    return;
-                }
-            }
-
-            db = db.filter(item => String(item.id) !== String(id));
-            renderViews();
-        }
-
-        // Editar entrada
-        function editEntry(id, event) {
-            if (event) event.stopPropagation();
-            closeAllDropdowns();
-            const item = db.find(it => String(it.id) === String(id));
-            if (item) openModal(item);
-        }
-
-        // Copiar entrada formateada para WhatsApp
-        async function copyEntry(id, event) {
-            if (event) event.stopPropagation();
-            closeAllDropdowns();
-            const item = db.find(it => String(it.id) === String(id));
-            if (!item) return;
-
-            const nombre = item.child === 'lia' ? 'Lía' : 'Max';
-            let formattedText = '';
-            if (item.type === 'frase') {
-                formattedText = `💬 "${item.text}"\n— ${nombre} (${item.display_date})`;
-            } else {
-                formattedText = `📅 *${nombre}* (${item.display_date}):\n${item.text}`;
-            }
+            if (!confirm('¿Seguro que deseas eliminar este recuerdo?')) return;
 
             try {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    await navigator.clipboard.writeText(formattedText);
-                } else {
-                    const ta = document.createElement('textarea');
-                    ta.value = formattedText;
-                    document.body.appendChild(ta);
-                    ta.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(ta);
+                if (typeof id === 'string' && id.length > 5) {
+                    await fetch(`${PB_BASE_URL}/api/collections/memories/records/${id}`, {
+                        method: 'DELETE'
+                    });
                 }
-                showToast('¡Copiado para WhatsApp! 📋');
-            } catch (err) {
-                console.error('Error al copiar:', err);
-                showToast('No se pudo copiar');
-            }
-        }
-
-        // Control del menú desplegable (⋮)
-        function toggleCardMenu(id, event) {
-            event.stopPropagation();
-            const targetMenu = document.getElementById(`dropdown-${id}`);
-            const wasActive = targetMenu && targetMenu.classList.contains('active');
-            closeAllDropdowns();
-            if (targetMenu && !wasActive) {
-                targetMenu.classList.add('active');
-            }
-        }
-
-        function closeAllDropdowns() {
-            document.querySelectorAll('.card-dropdown').forEach(m => m.classList.remove('active'));
-        }
-
-        // Cierra los desplegables al tocar fuera
-        document.addEventListener('click', () => closeAllDropdowns());
-
-        // Notificación flotante (toast)
-        let toastTimeout;
-        function showToast(text) {
-            const toast = document.getElementById('toast-notice');
-            toast.innerText = text;
-            toast.classList.add('visible');
-            clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => toast.classList.remove('visible'), 2000);
-        }
-
-        // Buscador
-        function doSearch() {
-            const query = document.getElementById('search-input').value.toLowerCase();
-            const resultsContainer = document.getElementById('search-results');
-            if (query.length < 2) { 
-                resultsContainer.innerHTML = ''; 
-                return; 
-            }
-            
-            const results = db.filter(item => 
-                (item.text && item.text.toLowerCase().includes(query)) || 
-                (item.display_date && item.display_date.toLowerCase().includes(query))
-            );
-            
-            if (results.length === 0) { 
-                resultsContainer.innerHTML = '<div style="padding:15px; text-align:center;">No hay resultados</div>'; 
-                return; 
+            } catch(e) {
+                console.warn('Error borrando en servidor:', e);
             }
 
-            resultsContainer.innerHTML = results.map(item => {
-                const icono = item.type === 'hito' ? '📅' : '💬';
-                const nombre = item.child === 'lia' ? 'Lía' : 'Max';
-                const snippet = item.text.length > 40 ? item.text.substring(0, 40) + '...' : item.text;
-                return `<div class="search-result-item" onclick="goToItem(${item.id}, '${item.type}')">
-                    <div style="font-size: 0.8rem; margin-bottom:5px;">${icono} ${nombre.toUpperCase()} - ${item.display_date}</div>
-                    <div>${snippet}</div></div>`;
+            memories = memories.filter(m => m.id !== id);
+            persistLocal();
+            renderAll();
+        }
+
+        // --- 9. Renderizado del Timeline Central 50/50 ---
+        function renderAll() {
+            renderTimeline();
+            renderQuotes();
+        }
+
+        function renderTimeline() {
+            const container = document.getElementById('timeline-container');
+            const headers = document.getElementById('tl-column-headers');
+            if (!container) return;
+
+            const world = WORLDS[currentWorld];
+
+            // Cabeceras de columnas (izquierda vs derecha)
+            headers.innerHTML = `
+                <div class="tl-split-col-title" style="color: ${world.left.color};">
+                    <span class="glass-pill ${world.left.class}" style="cursor:default;">${world.left.icon} ${world.left.name}</span>
+                </div>
+                <div class="tl-split-col-title" style="color: ${world.right.color};">
+                    <span class="glass-pill ${world.right.class}" style="cursor:default;">${world.right.icon} ${world.right.name}</span>
+                </div>
+            `;
+
+            // Filtrar únicamente los hitos del mundo activo (Hijos o Padres)
+            let list = memories.filter(m => {
+                if (m.type !== 'hito') return false;
+                return m.person === world.left.id || m.person === world.right.id;
+            });
+
+            if (currentCategoryFilter !== 'all') {
+                list = list.filter(m => m.category === currentCategoryFilter);
+            }
+
+            // Orden cronológico (más reciente arriba)
+            list.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (list.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding: 50px 10px; color: var(--text-muted);">
+                    <div style="margin-bottom: 12px; opacity: 0.4; display: flex; justify-content: center;">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    </div>
+                    No hay hitos registrados en la cronología de ${world.name.toLowerCase()}.
+                </div>`;
+                return;
+            }
+
+            container.innerHTML = list.map(item => {
+                const isLeft = item.person === world.left.id;
+                const sideClass = isLeft ? 'side-left' : 'side-right';
+                const pInfo = isLeft ? world.left : world.right;
+                const cat = CATEGORIES[item.category] || { label: '', icon: '✨' };
+
+                return `
+                <div class="container-tl ${sideClass} ${pInfo.class} scroll-item" id="item-${item.id}" data-date="${item.date}">
+                    <div class="content-tl">
+                        <div class="date-badge">
+                            <span style="display:inline-flex; align-items:center;">${cat.icon}</span>
+                            <span style="flex-grow:1;">${item.display_date || item.date}</span>
+                            <button class="edit-btn-mini" onclick="openEditModal('${item.id}')" title="Editar">${ICONS.edit}</button>
+                            <button class="delete-btn-mini" onclick="deleteEntry('${item.id}', event)" title="Eliminar">${ICONS.trash}</button>
+                        </div>
+                        <div class="tl-text-content">${item.text}</div>
+                    </div>
+                </div>`;
             }).join('');
         }
 
-        function goToItem(id, type) {
-            showScreen(type === 'hito' ? 'timeline-screen' : 'quotes-screen');
-            setTimeout(() => {
-                const element = document.getElementById(`item-${id}`);
-                if (element) {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    element.classList.add('highlight-item');
-                    setTimeout(() => element.classList.remove('highlight-item'), 2500);
-                }
-            }, 100);
-        }
+        // --- 10. Renderizado de Frases Célebres ---
+        function renderQuotes() {
+            const container = document.getElementById('quotes-container');
+            if (!container) return;
 
-        // Helper para crear el bloque HTML del menú de acciones
-        function renderCardMenu(id) {
-            return `
-                <button class="card-menu-btn" onclick="toggleCardMenu(${id}, event)" title="Opciones">⋮</button>
-                <div class="card-dropdown" id="dropdown-${id}">
-                    <button onclick="copyEntry(${id}, event)">📋 Copiar</button>
-                    <button onclick="editEntry(${id}, event)">✏️ Modificar</button>
-                    <button class="btn-delete-opt" onclick="deleteEntry(${id}, event)">🗑️ Borrar</button>
-                </div>
-            `;
-        }
+            const world = WORLDS[currentWorld];
 
-        // Renderizado
-        function renderViews() {
-            const sortedDb = [...db].sort((a, b) => new Date(a.sort_date) - new Date(b.sort_date));
+            // Filtrar solo las frases del mundo actual
+            let list = memories.filter(m => {
+                if (m.type !== 'frase') return false;
+                return m.person === world.left.id || m.person === world.right.id;
+            });
 
-            const timelineContainer = document.getElementById('timeline-container');
-            const hitos = sortedDb.filter(item => item.type === 'hito');
-            if (hitos.length === 0) { 
-                timelineContainer.innerHTML = '<p style="text-align:center;">No hay hitos guardados.</p>'; 
-            } else {
-                timelineContainer.innerHTML = hitos.map(item => `
-                    <div class="container-tl scroll-item ${item.child}" id="item-${item.id}" data-date="${item.sort_date}">
-                        <div class="content-tl">
-                            ${renderCardMenu(item.id)}
-                            <div class="date-badge">${item.display_date}</div>
-                            <div>${item.text}</div>
+            list.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (list.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding: 50px 10px; color: var(--text-muted);">
+                    <div style="margin-bottom: 12px; opacity: 0.4; display: flex; justify-content: center;">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    </div>
+                    No hay frases guardadas todavía en ${world.name.toLowerCase()}.
+                </div>`;
+                return;
+            }
+
+            container.innerHTML = list.map(item => {
+                const p = item.person === world.left.id ? world.left : world.right;
+                return `
+                <div class="quote-card ${p.class} scroll-item" id="item-${item.id}" data-date="${item.date}">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                        <span class="glass-pill ${p.class}" style="cursor:default;">${p.icon} ${p.name}</span>
+                        <div style="display:flex; gap: 4px;">
+                            <button class="edit-btn-mini" onclick="shareQuote('${item.text.replace(/'/g, "\\'")}', '${p.name}')" title="Compartir">${ICONS.share}</button>
+                            <button class="edit-btn-mini" onclick="openEditModal('${item.id}')" title="Editar">${ICONS.edit}</button>
+                            <button class="delete-btn-mini" onclick="deleteEntry('${item.id}', event)" title="Eliminar">${ICONS.trash}</button>
                         </div>
-                    </div>`).join('');
-            }
+                    </div>
+                    <div>“ ${item.text} ”</div>
+                    <div class="quote-author">
+                        <span style="font-size: 0.8rem; opacity: 0.8;">${item.display_date || item.date}</span>
+                        <span>- ${p.name}</span>
+                    </div>
+                </div>`;
+            }).join('');
+        }
 
-            const quotesContainer = document.getElementById('quotes-container');
-            const frases = sortedDb.filter(item => item.type === 'frase');
-            if (frases.length === 0) { 
-                quotesContainer.innerHTML = '<p style="text-align:center;">No hay frases guardadas.</p>'; 
+        // --- 11. Compartir Frases ---
+        function shareQuote(text, author) {
+            const message = `“${text}”\n— ${author} (MiniBitácora Familiar)`;
+            if (navigator.share) {
+                navigator.share({ title: 'Frase de ' + author, text: message }).catch(() => {});
+            } else if (navigator.clipboard) {
+                navigator.clipboard.writeText(message);
+                alert('Frase copiada al portapapeles para compartir ✨');
             } else {
-                quotesContainer.innerHTML = frases.map(item => `
-                    <div class="quote-card scroll-item ${item.child}" id="item-${item.id}" data-date="${item.sort_date}">
-                        ${renderCardMenu(item.id)}
-                        " ${item.text} " 
-                        <div class="quote-author">- ${item.child.toUpperCase()} (${item.display_date})</div>
-                    </div>`).reverse().join('');
+                alert(message);
             }
         }
 
-        // Indicador de Scroll
-        let scrollTimeout; 
-        const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        // --- 12. Buscador en Tiempo Real ---
+        function handleSearch() {
+            const q = document.getElementById('search-input').value.trim().toLowerCase();
+            const resBox = document.getElementById('search-results-box');
+            if (q.length < 2) {
+                resBox.innerHTML = '';
+                return;
+            }
+
+            const matches = memories.filter(m => {
+                return (m.text && m.text.toLowerCase().includes(q)) ||
+                       (m.display_date && m.display_date.toLowerCase().includes(q)) ||
+                       (m.person && m.person.toLowerCase().includes(q));
+            });
+
+            if (matches.length === 0) {
+                resBox.innerHTML = `<div class="glass-panel" style="padding: 14px; text-align: center; color: var(--text-muted); font-size: 0.9rem;">Sin resultados</div>`;
+                return;
+            }
+
+            resBox.innerHTML = `<div class="glass-panel" style="padding: 10px; border-radius: 18px;">
+                ${matches.map(m => {
+                    const isParent = (m.person === 'moni' || m.person === 'xavi');
+                    const pWorld = isParent ? WORLDS.parents : WORLDS.kids;
+                    const p = m.person === pWorld.left.id ? pWorld.left : pWorld.right;
+                    const icon = m.type === 'hito' ? ICONS.calendar : ICONS.quote;
+                    return `
+                    <div style="padding: 10px 12px; border-bottom: 1px solid var(--card-border); cursor:pointer;" onclick="jumpToItem('${m.id}', '${m.type}', '${isParent ? 'parents' : 'kids'}')">
+                        <div style="display:flex; align-items:center; gap: 6px; font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">
+                            <span>${icon}</span>
+                            <span>${p.icon}</span>
+                            <span>${p.name}</span>
+                            <span>•</span>
+                            <span>${m.display_date || m.date}</span>
+                        </div>
+                        <div style="font-size: 0.92rem; margin-top: 4px;">${m.text.length > 60 ? m.text.substring(0,60)+'...' : m.text}</div>
+                    </div>`;
+                }).join('')}
+            </div>`;
+        }
+
+        function jumpToItem(id, type, worldTarget) {
+            document.getElementById('search-results-box').innerHTML = '';
+            document.getElementById('search-input').value = '';
+            if (worldTarget !== currentWorld) setWorld(worldTarget);
+            openScreen(type === 'hito' ? 'timeline-screen' : 'quotes-screen');
+            setTimeout(() => {
+                const el = document.getElementById(`item-${id}`);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.classList.add('highlight-item');
+                    setTimeout(() => el.classList.remove('highlight-item'), 2000);
+                }
+            }, 150);
+        }
+
+        // --- 13. Indicador de Fecha en Scroll ---
+        let scrollTimer;
+        const MONTH_NAMES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
         window.addEventListener('scroll', () => {
             const activeScreen = document.querySelector('.screen:not(.hidden)');
             if (!activeScreen || activeScreen.id === 'home-screen' || activeScreen.id === 'login-screen') return;
+
             const items = activeScreen.querySelectorAll('.scroll-item');
-            let currentItem = null;
-            items.forEach(item => { 
-                const rect = item.getBoundingClientRect(); 
-                if (rect.top >= 0 && rect.top < 350) currentItem = item; 
+            let current = null;
+            items.forEach(it => {
+                const rect = it.getBoundingClientRect();
+                if (rect.top >= 0 && rect.top < 300) current = it;
             });
-            if (currentItem) {
-                const dateVal = currentItem.getAttribute('data-date');
-                if (dateVal) {
-                    const [year, month] = dateVal.split('-');
-                    const indicator = document.getElementById('scroll-indicator');
-                    indicator.innerText = `${months[parseInt(month)-1]} ${year}`;
-                    indicator.classList.add('visible');
-                    clearTimeout(scrollTimeout);
-                    scrollTimeout = setTimeout(() => indicator.classList.remove('visible'), 1500);
+
+            if (current) {
+                const dateStr = current.getAttribute('data-date');
+                if (dateStr) {
+                    const [y, m] = dateStr.split('-');
+                    const ind = document.getElementById('scroll-indicator');
+                    ind.innerText = `${MONTH_NAMES[parseInt(m)-1]} ${y}`;
+                    ind.classList.add('visible');
+                    clearTimeout(scrollTimer);
+                    scrollTimer = setTimeout(() => ind.classList.remove('visible'), 1400);
                 }
             }
         });
+
+        // Inicio
+        initTheme();
+        checkExistingSession();
+
+        // Registro de Service Worker para PWA Offline
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => {
+                    console.log('SW registration error:', err);
+                });
+            });
+        }
     </script>
 </body>
 </html>
