@@ -580,15 +580,24 @@
             align-items: center;
         }
 
-        /* Barra de Categorías */
+        /* Barra de Categorías - Ajuste Fit al 100% de la pantalla */
         .category-filter-bar {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding: 4px 0 14px 0;
-            scrollbar-width: none;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            padding: 4px 0 16px 0;
+            width: 100%;
         }
-        .category-filter-bar::-webkit-scrollbar { display: none; }
+        .category-filter-bar .glass-pill {
+            padding: 7px 2px;
+            font-size: 0.74rem;
+            justify-content: center;
+            text-align: center;
+            gap: 4px;
+            width: 100%;
+            box-sizing: border-box;
+            white-space: nowrap;
+        }
 
         /* FAB Button */
         #fab {
@@ -834,7 +843,7 @@
             </span>
             <span class="glass-pill neutral" onclick="filterCategory('rutina', this)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                <span>Día a Día</span>
+                <span>Rutina</span>
             </span>
             <span class="glass-pill neutral" onclick="filterCategory('especial', this)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
@@ -994,7 +1003,7 @@
 
         // Clave de acceso familiar y URL del Servidor Privado PocketBase (Tailscale)
         const FAMILY_PIN = '5588';
-        const PB_BASE_URL = 'http://100.105.167.20:8090';
+        const PB_BASE_URL = 'https://vasectoserver.tail883616.ts.net';
         let isOnlineWithServer = false;
 
         // --- 2. Inicialización y Modo Oscuro ---
