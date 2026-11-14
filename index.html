@@ -5,9 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>MiniBitácora Familiar</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" id="theme-color-meta" content="#0d1117">
+    <link rel="icon" type="image/png" href="icon-512.png">
+    <link rel="apple-touch-icon" href="icon-512.png">
+    <meta name="theme-color" id="theme-color-meta" content="#0b0f19">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MiniBitácora">
+    <meta name="mobile-web-app-capable" content="yes">
     <style>
         :root {
             /* --- Paleta de Cristal Translúcido de Color Total --- */
@@ -1003,7 +1007,10 @@
 
         // Clave de acceso familiar y URL del Servidor Privado PocketBase (Tailscale)
         const FAMILY_PIN = '5588';
-        const PB_BASE_URL = 'https://vasectoserver.tail883616.ts.net';
+        // Conexión automática al propio servidor (Same-Origin) o fallback
+        const PB_BASE_URL = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.includes('vercel.app')) 
+            ? window.location.origin 
+            : 'https://vasectoserver.tail883616.ts.net';
         let isOnlineWithServer = false;
 
         // --- 2. Inicialización y Modo Oscuro ---
@@ -1017,7 +1024,7 @@
 
         function updateMetaTheme(isDark) {
             const meta = document.getElementById('theme-color-meta');
-            if (meta) meta.setAttribute('content', isDark ? '#0b0f19' : '#f6f8fb');
+            if (meta) meta.setAttribute('content', isDark ? '#0b0f19' : '#eef2f6');
 
             // Actualizar botones de tema dinámicamente con SVG de sol o luna
             document.querySelectorAll('.icon-btn[onclick="toggleDarkMode()"]').forEach(btn => {
